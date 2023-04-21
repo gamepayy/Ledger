@@ -1,0 +1,25 @@
+@startuml
+!theme amiga
+
+title Gamepayy Rewards Distributor
+
+RewardSystem -> Database: Get account balances
+Database--> RewardSystem : Return account balances
+RewardSystem -> RewardAggregator: Generate leaf(hash) for each account held balance
+RewardAggregator --> Database: Store leaf
+RewardSystem -> Database: Get daily leaves
+Database --> RewardSystem: Return leaves
+RewardSystem -> MerkleTree: Generate Tree
+MerkleTree --> Database: Store root hash
+MerkleTree --> RewardSystem: Return root hash
+
+
+RewardSystem -> GelatoAutomator: Request rewards distribuition
+GelatoAutomator --> Chain: Call transaction with root hash
+GelatoAutomator --> RewardSystem: Return bool
+RewardSystem -> Database: Update root status
+
+User -> Chain: Claim Reward
+Chain --> User: Return transaction
+Chain --> Database: Update reward balances
+@enduml
