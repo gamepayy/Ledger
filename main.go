@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"math/big"
 	"os"
@@ -31,11 +32,33 @@ func main() {
 	}
 
 	// insert a new ledger
-	ledger := database.Ledger{
-		Account: "tester",
-		Balance: *big.NewInt(100),
+	newLedger := database.Ledger{
+		Account: "tester22",
+		Balance: "1000000000000000000000000000000",
 	}
 
-	_, err = database.NewLedger(db, ledger)
+	_, err = database.NewLedger(db, newLedger)
+
+	if err != nil {
+		log.Fatalf("failed to insert: %v", err)
+	}
+
+	withdraw := new(big.Int)
+	withdraw, ok := withdraw.SetString("1000000000000000000000000000", 10)
+	if !ok {
+		log.Fatalf("failed to set string")
+	}
+	// withdraw from a ledger
+	_, err = database.WithdrawLedger(db, "tester12", "token", withdraw)
+	if err != nil {
+		log.Fatalf("failed to withdraw: %v", err)
+	}
+
+	// get a ledger
+	ledger, err := database.GetLedger(db, "tester12")
+	if err != nil {
+		log.Fatalf("failed to get: %v", err)
+	}
+	fmt.Println(ledger)
 
 }
