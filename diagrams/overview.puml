@@ -1,0 +1,92 @@
+@startuml
+!theme amiga
+
+title Gamepayy Overview
+class User {
+    -address: string
+    -balances: Ledger
+    +deposit: (amount big.Int, token string)
+    +withdraw: (amount big.Int, token string)
+    +becomeArbitrator: () bool
+    +createTournament(): void
+    +createMatch(): void
+    +finishTournamentEntry(): void
+}
+
+class Arbitrator {
+    -correctEntries: int
+    -wrongEntries: int
+    -trustScore: int
+    -tournaments: []hash
+    +updateMatchResult()
+    +joinTournament()
+    +updateTournamentResult()
+}
+
+class Ledger {
+    -nativeTokenBalance: big.Int
+    -externalTokensBalances: []ExternalToken
+}
+
+class ExternalToken{
+    -address: string
+    -balance: big.Int
+}
+
+class Challenge {
+    -name: string
+    -requirements: Requirement[]
+    -status: int
+}
+
+class Requirement {
+    -metric: string
+    -value: int
+}
+
+class Tournament {
+    -name: string
+    -id: hash
+    -matches: Match[]
+    -initialPlayers: string[]
+    -playersLeft: string[]
+    -prizePool: Prize[]
+    -minimumPlayers: int
+    -maximumPlayers: int
+    -entryFee: bigInt
+    -entryToken: string
+}
+
+class Match {
+    -result: string
+    -players: User[]
+    -prizePool: Prize[]
+}
+
+class Prize{
+    -token: string
+    -amount: big.Int
+    -position: int
+}
+
+User -left-> "1..*" Challenge
+User <-down- "2..1" Match
+User -down-> "1..*" Match
+User -down-> "1..*" Tournament
+User <|-up- Ledger
+
+Arbitrator <|-- User
+Arbitrator -down-> "1..*" Tournament
+Arbitrator <-up- "1-*..1" Tournament
+Arbitrator -down-> "1..*" Match
+
+Match <|-right- Prize
+
+Tournament -up-> "1..2-*" User
+Tournament <|-up- Prize
+Tournament -left-> "1..*" Match
+
+Ledger <|-up- ExternalToken
+
+Challenge <|-up- Requirement
+@enduml
