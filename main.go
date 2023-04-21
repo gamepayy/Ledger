@@ -33,7 +33,7 @@ func main() {
 
 	// insert a new ledger
 	newLedger := database.Ledger{
-		Account: "tester22",
+		Account: "tester23",
 		Balance: "1000000000000000000000000000000",
 	}
 
@@ -56,6 +56,23 @@ func main() {
 
 	// get a ledger
 	ledger, err := database.GetLedger(db, "tester12")
+	if err != nil {
+		log.Fatalf("failed to get: %v", err)
+	}
+	fmt.Println(ledger)
+
+	deposit := new(big.Int)
+	deposit, ok = deposit.SetString("3333333333333333333333", 10)
+	if !ok {
+		log.Fatalf("failed to set string")
+	}
+	_, err = database.DepositLedger(db, "tester12", "token", deposit)
+
+	if err != nil {
+		log.Fatalf("failed to deposit: %v", err)
+	}
+
+	ledger, err = database.GetLedger(db, "tester12")
 	if err != nil {
 		log.Fatalf("failed to get: %v", err)
 	}

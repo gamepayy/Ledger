@@ -57,6 +57,31 @@ func GetLedger(db *sql.DB, account string) (Ledger, error) {
 	return ledger, nil
 }
 
+func DepositLedger(db *sql.DB, account string, token string, amount *big.Int) (bool, error) {
+
+	// sum balance
+	balanceCheck, err := SumBalance(db, account, amount)
+	// deposit
+	stmt, err := db.Prepare("UPDATE users SET balance = ? WHERE address = ?")
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+
+	res, err := stmt.Exec(balanceCheck.NewBalance, account)
+	if err != nil {
+		return false, err
+	}
+
+	affect, err := res.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
+	log.Printf("Deposit affected %d rows", affect)
+	return true, nil
+}
+
 func WithdrawLedger(db *sql.DB, account string, token string, amount *big.Int) (bool, error) {
 
 	// check if user has enough balance
@@ -132,6 +157,41 @@ func HasEnoughBalance(db *sql.DB, account string, amount *big.Int) (BalanceCheck
 	}
 	Check.IsPossible = true
 	Check.NewBalance = (ledgerBalance.Sub(ledgerBalance, amount)).String()
+
+	return Check, nil
+}
+
+func SumBalance(db *sql.DB, account string, amount *big.Int) (BalanceCheck, error) {
+	Check := BalanceCheck{
+		NewBalance: "0",
+		IsPossible: false,
+	}
+	// get
+	stmt, err := db.Prepare("SELECT * FROM users WHERE address = ?")
+	if err != nil {
+		return Check, err
+	}
+	defer stmt.Close()
+
+	var ledger Ledger
+	row := stmt.QueryRow(account)
+	row.Scan(&ledger.Account, &ledger.Balance)
+	if err != nil {
+		return Check, err
+	}
+
+	ledgerBalance := new(big.Int)
+	ledgerBalance, ok := ledgerBalance.SetString(ledger.Balance, 10)
+
+	if !ok {
+		return Check, fmt.Errorf("failed to convert string to big.Int")
+	}
+
+	if ledgerBalance.Cmp(amount) < 0 {
+		return Check, nil
+	}
+	Check.IsPossible = true
+	Check.NewBalance = (ledgerBalance.Add(ledgerBalance, amount)).String()
 
 	return Check, nil
 }
