@@ -13,17 +13,18 @@ func InitRouter() *gin.Engine {
 	{
 
 		apiv1.GET("/user", v1.GetLedger)
+		apiv1.GET("/token", v1.GetToken)
 
 		apiv1.POST("/user/new", v1.NewLedger)
-		apiv1.POST("/new_token", v1.NewToken)
+		apiv1.POST("/token/new", v1.NewToken)
 
 		apiv1.DELETE("/user/delete", v1.DeleteLedger)
-		apiv1.DELETE("/delete_token", v1.DeleteToken)
+		apiv1.DELETE("/token/delete", v1.DeleteToken)
 
-		apiv1.PUT("/edit_token", v1.EditToken)
 		apiv1.PUT("/user/transfer", v1.TransferLedger)
 		apiv1.PUT("/user/deposit", v1.DepositLedger)
 		apiv1.PUT("/user/withdraw", v1.WithdrawLedger)
+		apiv1.PUT("/token/update", v1.UpdateToken)
 	}
 
 	//router.Run("localhost:8080")
