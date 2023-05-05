@@ -1,37 +1,16 @@
 package database
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"math/big"
-	"os"
 
 	_ "github.com/go-sql-driver/mysql"
-
-	"github.com/joho/godotenv"
 )
 
 type Ledger struct {
 	Account string `json:"account"`
 	Balance string `json:"balance"`
-}
-
-func connectDB() (*sql.DB, error) {
-
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("err loading: %v", err)
-		return nil, err
-	}
-
-	db, err := sql.Open("mysql", os.Getenv("DSN"))
-	if err != nil {
-		log.Fatalf("failed to connect: %v", err)
-		return nil, err
-	}
-
-	return db, nil
 }
 
 func NewLedger(ledger Ledger) (bool, error) {
