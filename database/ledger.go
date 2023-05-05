@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"os"
 
 	_ "github.com/go-sql-driver/mysql"
+
+	"github.com/joho/godotenv"
 )
 
 type Ledger struct {
@@ -14,7 +17,27 @@ type Ledger struct {
 	Balance string `json:"balance"`
 }
 
-func NewLedger(db *sql.DB, ledger Ledger) (bool, error) {
+func connectDB() (*sql.DB, error) {
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("err loading: %v", err)
+		return nil, err
+	}
+
+	db, err := sql.Open("mysql", os.Getenv("DSN"))
+	if err != nil {
+		log.Fatalf("failed to connect: %v", err)
+		return nil, err
+	}
+
+	return db, nil
+}
+
+func NewLedger(ledger Ledger) (bool, error) {
+
+	db, err := connectDB()
+
 	// insert
 	stmt, err := db.Prepare("INSERT INTO users (address, balance) VALUES (?, ?)")
 	if err != nil {
@@ -39,8 +62,10 @@ func NewLedger(db *sql.DB, ledger Ledger) (bool, error) {
 	return true, nil
 }
 
-func GetLedger(db *sql.DB, account string) (Ledger, error) {
-	// get
+func GetLedger(account string) (Ledger, error) {
+
+	db, err := connectDB()
+
 	stmt, err := db.Prepare("SELECT balance FROM users WHERE address = ?")
 	if err != nil {
 		return Ledger{}, err
@@ -54,13 +79,35 @@ func GetLedger(db *sql.DB, account string) (Ledger, error) {
 		return Ledger{}, err
 	}
 
+	ledger.Account = account
+
 	return ledger, nil
 }
 
-func DepositLedger(db *sql.DB, account string, token string, amount *big.Int) (bool, error) {
+func DeleteLedger(account string) (string, error) {
+	db, err := connectDB()
+	fmt.Println(account)
+	stmt, err := db.Prepare("DELETE FROM users WHERE address = ?")
+	if err != nil {
+		return "DB statement preparation error ", err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(account)
+	if err != nil {
+		return "DB deletion error ", err
+	}
+
+	return "DB deletion success.", nil
+
+}
+
+func DepositLedger(account string, token string, amount *big.Int) (bool, error) {
+
+	db, err := connectDB()
 
 	// sum balance
-	balanceCheck, err := SumBalance(db, account, amount)
+	balanceCheck, err := SumBalance(account, amount)
 	// deposit
 	stmt, err := db.Prepare("UPDATE users SET balance = ? WHERE address = ?")
 	if err != nil {
@@ -82,10 +129,12 @@ func DepositLedger(db *sql.DB, account string, token string, amount *big.Int) (b
 	return true, nil
 }
 
-func WithdrawLedger(db *sql.DB, account string, token string, amount *big.Int) (bool, error) {
+func WithdrawLedger(account string, token string, amount *big.Int) (bool, error) {
+
+	db, err := connectDB()
 
 	// check if user has enough balance
-	balanceCheck, err := HasEnoughBalance(db, account, amount)
+	balanceCheck, err := HasEnoughBalance(account, amount)
 	if err != nil {
 		return false, err
 	}
@@ -125,7 +174,9 @@ type BalanceCheck struct {
 	IsPossible bool   `json:"is_possible"`
 }
 
-func HasEnoughBalance(db *sql.DB, account string, amount *big.Int) (BalanceCheck, error) {
+func HasEnoughBalance(account string, amount *big.Int) (BalanceCheck, error) {
+
+	db, err := connectDB()
 
 	Check := BalanceCheck{
 		NewBalance: "0",
@@ -161,7 +212,9 @@ func HasEnoughBalance(db *sql.DB, account string, amount *big.Int) (BalanceCheck
 	return Check, nil
 }
 
-func SumBalance(db *sql.DB, account string, amount *big.Int) (BalanceCheck, error) {
+func SumBalance(account string, amount *big.Int) (BalanceCheck, error) {
+	db, err := connectDB()
+
 	Check := BalanceCheck{
 		NewBalance: "0",
 		IsPossible: false,

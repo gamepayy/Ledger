@@ -1,4 +1,4 @@
-package main
+/*package main
 
 import (
 	"database/sql"
@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/big"
 	"os"
+
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
@@ -33,7 +34,7 @@ func main() {
 
 	// insert a new ledger
 	newLedger := database.Ledger{
-		Account: "tester23",
+		Account: "tester233",
 		Balance: "1000000000000000000000000000000",
 	}
 
@@ -77,5 +78,15 @@ func main() {
 		log.Fatalf("failed to get: %v", err)
 	}
 	fmt.Println(ledger)
+*/
+//}
+package main
 
+import (
+	router "gamepayy_ledger/routers"
+	_ "github.com/go-sql-driver/mysql"
+)
+
+func main() {
+	router.InitRouter()
 }

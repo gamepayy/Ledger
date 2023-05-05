@@ -4,7 +4,9 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -24,13 +26,19 @@ func EndpointTest(t *testing.T, router *gin.Engine, requestType, endpoint string
 func TestAllRoutes(t *testing.T) {
 	router := InitRouter()
 
-	EndpointTest(t, router, "GET", "/api/v1/user", 200, nil, "pang")
+	accountJson := `{"account":"tester16113","balance":"5"}`
+	postBody := strings.NewReader(`{"account":"tester16113","balance":"5"}`)
+	body := strings.NewReader(`{"account":"tester16113"}`)
+	EndpointTest(t, router, "POST", "/api/v1/user/new", 200, postBody, `true`)
+	EndpointTest(t, router, "GET", "/api/v1/user", 200, body, accountJson)
 
 	EndpointTest(t, router, "POST", "/api/v1/new_token", 200, nil, `pang`)
-	EndpointTest(t, router, "POST", "/api/v1/user/new", 200, nil, `{"message":"pong"}`)
+
+	time.Sleep(5 * time.Second)
+	body = strings.NewReader(`{"account":"tester16113"}`)
+	EndpointTest(t, router, "DELETE", "/api/v1/user/delete", 200, body, `"DB deletion success."`)
 
 	EndpointTest(t, router, "DELETE", "/api/v1/delete_token", 200, nil, `pang`)
-	EndpointTest(t, router, "DELETE", "/api/v1/user/delete", 200, nil, `{"message":"pong"}`)
 
 	EndpointTest(t, router, "PUT", "/api/v1/edit_token", 200, nil, `pang`)
 	EndpointTest(t, router, "PUT", "/api/v1/user/transfer", 200, nil, `{"message":"pong"}`)

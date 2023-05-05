@@ -1,8 +1,6 @@
 package routers
 
 import (
-	"net/http"
-
 	v1 "gamepayy_ledger/routers/api/v1"
 
 	"github.com/gin-gonic/gin"
@@ -10,9 +8,6 @@ import (
 
 func InitRouter() *gin.Engine {
 	router := gin.New()
-	router.GET("/ping", func(c *gin.Context) {
-		c.String(http.StatusOK, "pong")
-	})
 
 	apiv1 := router.Group("/api/v1")
 	{
@@ -30,5 +25,7 @@ func InitRouter() *gin.Engine {
 		apiv1.PUT("/user/deposit", v1.DepositLedger)
 		apiv1.PUT("/user/withdraw", v1.WithdrawLedger)
 	}
+
+	//router.Run("localhost:8080")
 	return router
 }
