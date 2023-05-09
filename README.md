@@ -24,3 +24,14 @@ Rewards can also be earned by competing in tournaments and matches. These are me
 The GamePayy platform will then receive a request from arbitrators to the ledger to update the tournament or match with the results. The ledger will then update the tournament or match in the database. The GamePayy platform will then update the tournament or match in the Toornament database.
 
 ## Rewards Distributor
+
+## Pending
+[ ] Swagger Documentation
+[ ] DB Connection optimizations
+[ ] Pending withdrawls database
+[ ] Merkletree insertion at pending withdrawls
+[ ] Diagrams
+[ ] Explanatory Gitbook
+[ ] Middleware
+[ ] API key generator
+[ ] Pending root hashes to chain CRON job
