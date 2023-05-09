@@ -12,7 +12,9 @@ It exposes a REST API for the GamePayy platform to interact with.
 ## Diagrams
 ![Diagram Image Link](https://bafkreiczjo4bxt6nxqwdzyjy7orlklruzskw5du434zfayet3552ygoxpa.ipfs.w3s.link/)
 ![Rewards Distributor](https://bafkreieso3uu4warki36znxzs25lkbfmvjk4ghqxrpiwzldasfh3rz2sym.ipfs.w3s.link/)
-
+![Users Database]()
+![Balances Database]()
+![PendingRewards Database]()
 
 ## Getting Started
 

@@ -8,6 +8,7 @@ import (
 	"os"
 
 
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 
@@ -87,6 +88,11 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+// @title My API
+// @version 1.0
+// @description This is a sample API
+// @host localhost:8080
+// @BasePath /api/v1
 func main() {
 	router.InitRouter()
 }

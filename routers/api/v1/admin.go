@@ -10,10 +10,9 @@ import (
 )
 
 // @Summary
-// @Produce  json
-// @Param
-// @Success 200 {object} json
-// @Failure 400 {object} json
+// @Param name body string true "Username" default(user) name body string true "Username" default(user)
+// @Success 200 {object} object
+// @Failure 400 {object} object
 // @Router /api/v1/ledger [get]
 func NewToken(c *gin.Context) {
 
@@ -75,10 +74,9 @@ func GetToken(c *gin.Context) {
 }
 
 // @Summary
-// @Produce  json
-// @Param
-// @Success 200 {object} json
-// @Failure 400 {object} json
+// @Param name body string true "Username" default(user)
+// @Success 200 {object} object
+// @Failure 400 {object} object
 // @Router /api/v1/ledger [get]
 func DeleteToken(c *gin.Context) {
 
@@ -107,10 +105,8 @@ func DeleteToken(c *gin.Context) {
 }
 
 // @Summary
-// @Produce  json
-// @Param
-// @Success 200 {object} json
-// @Failure 400 {object} json
+// @Success 200 {object} object
+// @Failure 400 {object} object
 // @Router /api/v1/ledger [get]
 func UpdateToken(c *gin.Context) {
 
