@@ -105,6 +105,8 @@ func DepositLedger(account, token, amount string) (bool, error) {
 
 	if token == "0x" {
 
+	} else {
+		// inserts into tokens table
 	}
 	// deposit
 	stmt, err := db.Prepare("UPDATE users SET balance = ? WHERE address = ?")
@@ -223,11 +225,6 @@ func WithdrawLedger(account, token, amount string) (bool, error) {
 
 	return true, nil
 }
-
-/*
-HasEnoughBalance checks if the user has enough balance
-
-*/
 
 type BalanceCheck struct {
 	NewBalance string `json:"balance"`
