@@ -27,11 +27,12 @@ The GamePayy platform will then receive a request from arbitrators to the ledger
 
 ## Pending
 [ ] Swagger Documentation
-[ ] DB Connection optimizations
-[ ] Pending withdrawls database
-[ ] Merkletree insertion at pending withdrawls
+[x] DB Connection optimizations
+[x] Pending withdrawls database
+[ ] Pending withdrawls API
+    [ ] Merkletree insertion at pending withdrawls
+    [ ] Pending root hashes to chain CRON job
 [ ] Diagrams
 [ ] Explanatory Gitbook
 [ ] Middleware
 [ ] API key generator
-[ ] Pending root hashes to chain CRON job
