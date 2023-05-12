@@ -9,11 +9,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// @Summary
-// @Param name body string true "Username" default(user) name body string true "Username" default(user)
+// @Summary Creates a new token
+// @Produce json
+// @Param address body string true "Address"
+// @Param decimals body string true "Decimals"
+// @Param symbol body string true "Symbol"
+// @Param name body string true "Name"
 // @Success 200 {object} object
 // @Failure 400 {object} object
-// @Router /api/v1/ledger [get]
+// @Router /token/new [post]
 func NewToken(c *gin.Context) {
 
 	body := c.Request.Body
@@ -47,6 +51,12 @@ func NewToken(c *gin.Context) {
 	c.JSON(http.StatusOK, true)
 }
 
+// @Summary 	Gets a token's data
+// @Produce  	json
+// @Param 		address query string true "Token"
+// @Success 	200 {object} object
+// @Failure 	400 {object} object
+// @Router 		/token [get]
 func GetToken(c *gin.Context) {
 
 	body := c.Request.Body
@@ -73,11 +83,11 @@ func GetToken(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// @Summary
-// @Param name body string true "Username" default(user)
+// @Summary Deletes a token
+// @Param address query string true "Token"
 // @Success 200 {object} object
 // @Failure 400 {object} object
-// @Router /api/v1/ledger [get]
+// @Router /token/delete [delete]
 func DeleteToken(c *gin.Context) {
 
 	body := c.Request.Body
@@ -104,10 +114,15 @@ func DeleteToken(c *gin.Context) {
 
 }
 
-// @Summary
+// @Summary Updates a token's data
+// @Produce json
+// @Param address body string true "Token"
+// @Param decimals body string true "Decimals"
+// @Param symbol body string true "Symbol"
+// @Param name body string true "Name"
 // @Success 200 {object} object
 // @Failure 400 {object} object
-// @Router /api/v1/ledger [get]
+// @Router /token/update [put]
 func UpdateToken(c *gin.Context) {
 
 	body := c.Request.Body

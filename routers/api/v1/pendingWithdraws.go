@@ -27,7 +27,7 @@ type Withdraw struct {
 // @Accept json
 // @Success 	200 {object} object
 // @Failure 	400 {object} object
-// @Router 		/api/v1/user [get]
+// @Router 		/withdraws/new [post]
 func InsertWithdraw(c *gin.Context) {
 	body := c.Request.Body
 
@@ -60,7 +60,7 @@ func InsertWithdraw(c *gin.Context) {
 // @Accept json
 // @Success 	200 {object} object
 // @Failure 	400 {object} object
-// @Router 		/api/v1/user [get]
+// @Router 		/withdraws/delete [delete]
 func DeleteWithdraw(c *gin.Context) {
 	body := c.Request.Body
 
@@ -91,7 +91,7 @@ func DeleteWithdraw(c *gin.Context) {
 // @Accept json
 // @Success 	200 {object} object
 // @Failure 	400 {object} object
-// @Router 		/api/v1/user [get]
+// @Router 		/withdraws/clean [delete]
 func DeleteProcessedWithdraws(c *gin.Context) {
 	body := c.Request.Body
 
@@ -124,7 +124,7 @@ func DeleteProcessedWithdraws(c *gin.Context) {
 // @Accept json
 // @Success 	200 {object} object
 // @Failure 	400 {object} object
-// @Router 		/api/v1/user [get]
+// @Router 		/withdraws/process [put]
 func ProcessWithdraw(c *gin.Context) {
 	body := c.Request.Body
 
@@ -157,7 +157,7 @@ func ProcessWithdraw(c *gin.Context) {
 // @Accept json
 // @Success 	200 {object} object
 // @Failure 	400 {object} object
-// @Router 		/api/v1/user [get]
+// @Router 		/withdraws [get]
 func GetWithdraws(c *gin.Context) {
 	body := c.Request.Body
 

@@ -19,12 +19,6 @@ func InitRouter() *gin.Engine {
 
 	user := router.Group("/api/v1/user")
 	{
-		// @Summary 	Gets an account's data
-		// @Produce  	json
-		// @Param 		account query string true "Account"
-		// @Success 	200 {object} object
-		// @Failure 	400 {object} object
-		// @Router 		/api/v1/user [get]
 		user.GET("", v1.GetLedger)
 
 		user.POST("/new", v1.NewLedger)
@@ -41,12 +35,6 @@ func InitRouter() *gin.Engine {
 
 	token := router.Group("/api/v1/token")
 	{
-		// @Summary 	Gets a token's data
-		// @Produce  	json
-		// @Param 		token query string true "Token"
-		// @Success 	200 {object} object
-		// @Failure 	400 {object} object
-		// @Router 		/api/v1/token [get]
 		token.GET("", v1.GetToken)
 
 		token.POST("/new", v1.NewToken)
@@ -70,6 +58,6 @@ func InitRouter() *gin.Engine {
 		withdraws.PUT("/process", v1.ProcessWithdraw)
 	}
 
-	//router.Run("localhost:8080")
+	router.Run("localhost:8080")
 	return router
 }

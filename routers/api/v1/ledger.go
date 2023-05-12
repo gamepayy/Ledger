@@ -18,11 +18,10 @@ type Ledger struct {
 
 // @Summary 	Gets an account's data
 // @Produce  	json
-// @Param 		account body string true "Account"
-// @Accept json
+// @Param 		account query string true "Account"
 // @Success 	200 {object} object
 // @Failure 	400 {object} object
-// @Router 		/api/v1/user [get]
+// @Router 		/user [get]
 func GetLedger(c *gin.Context) {
 
 	body := c.Request.Body
@@ -53,7 +52,7 @@ func GetLedger(c *gin.Context) {
 // @Produce  	json
 // @Success 	200 {object} object
 // @Failure 	400 {object} object
-// @Router 		/api/v1/ledger [post]
+// @Router 		/user/new [post]
 func NewLedger(c *gin.Context) {
 
 	body := c.Request.Body
@@ -85,12 +84,12 @@ func NewLedger(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-// @Summary
+// @Summary Deletes an account
 // @Produce  json
-
+// @Param name body string true "Username" default(user)
 // @Success 200 {object} object
 // @Failure 400 {object} object
-// @Router /api/v1/ledger [delete]
+// @Router /user/delete [delete]
 func DeleteLedger(c *gin.Context) {
 
 	body := c.Request.Body
@@ -115,12 +114,15 @@ func DeleteLedger(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-// @Summary
+// @Summary Transfers an amount from one account to another
 // @Produce  json
-
+// @Param name body string true "from" default(user)
+// @Param name body string true "to" default(user)
+// @Param name body string true "amount" default(1)
+// @Param name body string true "token" default(0x)
 // @Success 200 {object} object
 // @Failure 400 {object} object
-// @Router /api/v1/ledger [put]
+// @Router /user/transfer [put]
 func TransferLedger(c *gin.Context) {
 
 	body := c.Request.Body
@@ -146,12 +148,14 @@ func TransferLedger(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-// @Summary
+// @Summary Withdraws an amount from an account
 // @Produce  json
-
+// @Param name body string true "account" default(user)
+// @Param amount body string true "amount" default(1)
+// @Param token body string true "token" default(0x)
 // @Success 200 {object} object
 // @Failure 400 {object} object
-// @Router /api/v1/ledger [put]
+// @Router /user/withdraw [put]
 func WithdrawLedger(c *gin.Context) {
 
 	body := c.Request.Body
@@ -175,12 +179,14 @@ func WithdrawLedger(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-// @Summary
+// @Summary Deposits an amount to an account
 // @Produce  json
-
+// @Param name body string true "account" default(user)
+// @Param amount body string true "amount" default(1)
+// @Param token body string true "token" default(0x)
 // @Success 200 {object} object
 // @Failure 400 {object} object
-// @Router /api/v1/ledger [put]
+// @Router /user/deposit [put]
 func DepositLedger(c *gin.Context) {
 
 	body := c.Request.Body

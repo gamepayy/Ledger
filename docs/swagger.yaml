@@ -8,28 +8,14 @@ info:
   title: GP API
   version: "1.0"
 paths:
-  /api/v1/ledger:
-    delete:
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            type: object
+  /token:
     get:
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            type: object
-    post:
+      parameters:
+      - description: Token
+        in: query
+        name: address
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -41,8 +27,15 @@ paths:
           description: Bad Request
           schema:
             type: object
-      summary: Creates a new account with a ledger
-    put:
+      summary: Gets a token's data
+  /token/delete:
+    delete:
+      parameters:
+      - description: Token
+        in: query
+        name: address
+        required: true
+        type: string
       responses:
         "200":
           description: OK
@@ -52,14 +45,31 @@ paths:
           description: Bad Request
           schema:
             type: object
-  /api/v1/user:
-    get:
-      consumes:
-      - application/json
+      summary: Deletes a token
+  /token/new:
+    post:
       parameters:
-      - description: Account
+      - description: Address
         in: body
-        name: account
+        name: address
+        required: true
+        schema:
+          type: string
+      - description: Decimals
+        in: body
+        name: decimals
+        required: true
+        schema:
+          type: string
+      - description: Symbol
+        in: body
+        name: symbol
+        required: true
+        schema:
+          type: string
+      - description: Name
+        in: body
+        name: name
         required: true
         schema:
           type: string
@@ -74,5 +84,354 @@ paths:
           description: Bad Request
           schema:
             type: object
+      summary: Creates a new token
+  /token/update:
+    put:
+      parameters:
+      - description: Token
+        in: body
+        name: address
+        required: true
+        schema:
+          type: string
+      - description: Decimals
+        in: body
+        name: decimals
+        required: true
+        schema:
+          type: string
+      - description: Symbol
+        in: body
+        name: symbol
+        required: true
+        schema:
+          type: string
+      - description: Name
+        in: body
+        name: name
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+      summary: Updates a token's data
+  /user:
+    get:
+      parameters:
+      - description: Account
+        in: query
+        name: account
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
       summary: Gets an account's data
+  /user/delete:
+    delete:
+      parameters:
+      - default: user
+        description: Username
+        in: body
+        name: name
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+      summary: Deletes an account
+  /user/deposit:
+    put:
+      parameters:
+      - default: user
+        description: account
+        in: body
+        name: name
+        required: true
+        schema:
+          type: string
+      - default: "1"
+        description: amount
+        in: body
+        name: amount
+        required: true
+        schema:
+          type: string
+      - default: 0x
+        description: token
+        in: body
+        name: token
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+      summary: Deposits an amount to an account
+  /user/new:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+      summary: Creates a new account with a ledger
+  /user/transfer:
+    put:
+      parameters:
+      - default: user
+        description: from
+        in: body
+        name: name
+        required: true
+        schema:
+          type: string
+      - default: user
+        description: to
+        in: body
+        name: name
+        required: true
+        schema:
+          type: string
+      - default: "1"
+        description: amount
+        in: body
+        name: name
+        required: true
+        schema:
+          type: string
+      - default: 0x
+        description: token
+        in: body
+        name: name
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+      summary: Transfers an amount from one account to another
+  /user/withdraw:
+    put:
+      parameters:
+      - default: user
+        description: account
+        in: body
+        name: name
+        required: true
+        schema:
+          type: string
+      - default: "1"
+        description: amount
+        in: body
+        name: amount
+        required: true
+        schema:
+          type: string
+      - default: 0x
+        description: token
+        in: body
+        name: token
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+      summary: Withdraws an amount from an account
+  /withdraws:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Account
+        in: body
+        name: account
+        required: true
+        schema:
+          type: string
+      - description: Token
+        in: body
+        name: token
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+      summary: Gets an account's withdraws data
+  /withdraws/clean:
+    delete:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+      summary: Removes all finished withdraws from the database and adds them to the
+        finished withdraws table
+  /withdraws/delete:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Account
+        in: body
+        name: account
+        required: true
+        schema:
+          type: string
+      - description: Token
+        in: body
+        name: token
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+      summary: Removes a pending withdraw from the database
+  /withdraws/new:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Account
+        in: body
+        name: account
+        required: true
+        schema:
+          type: string
+      - description: Token
+        in: body
+        name: token
+        required: true
+        schema:
+          type: string
+      - description: Amount
+        in: body
+        name: amount
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+      summary: Inserts a pending withdraw into the database
+  /withdraws/process:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Account
+        in: body
+        name: account
+        required: true
+        schema:
+          type: string
+      - description: Token
+        in: body
+        name: token
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+      summary: Sets a pending withdraw to finished
 swagger: "2.0"
