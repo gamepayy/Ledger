@@ -88,3 +88,32 @@ func TestAllRoutes(t *testing.T) {
 	EndpointTest(t, router, "GET", "/api/v1/user", 200, body, accountJson)
 
 }
+
+// missing tests for pending withdraws api
+
+func TestPendingWithdrawsRoutes(t *testing.T) {
+
+	// copilot, write the tests:
+	// 1. create a new pending withdraw
+
+	// 2. get a this pending withdraw
+
+	// 3. delete this pending withdraw
+
+	// 4. get this pending withdraw again (should be deleted)
+
+	// 5. create 5x new pending withdraws
+
+	// 6. get all pending withdraws
+
+	// 7. process 3x pending withdraws
+
+	// 8. get all pending withdraws again
+
+	// 9. delete all processed withdraws
+
+	// 10. get all pending withdraws again
+
+	// 11. delete all pending withdraws
+
+}

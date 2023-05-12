@@ -17,30 +17,59 @@ func InitRouter() *gin.Engine {
 	docs.SwaggerInfo.BasePath = "/api/v1"
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	apiv1 := router.Group("/api/v1")
+	user := router.Group("/api/v1/user")
 	{
-
 		// @Summary 	Gets an account's data
 		// @Produce  	json
 		// @Param 		account query string true "Account"
 		// @Success 	200 {object} object
 		// @Failure 	400 {object} object
-		// @Router 		/user [get]
-		apiv1.GET("/user", v1.GetLedger)
-		apiv1.GET("/token", v1.GetToken)
+		// @Router 		/api/v1/user [get]
+		user.GET("", v1.GetLedger)
 
-		apiv1.POST("/user/new", v1.NewLedger)
-		apiv1.POST("/token/new", v1.NewToken)
+		user.POST("/new", v1.NewLedger)
 
-		apiv1.DELETE("/user/delete", v1.DeleteLedger)
-		apiv1.DELETE("/token/delete", v1.DeleteToken)
+		user.DELETE("/delete", v1.DeleteLedger)
 
-		apiv1.PUT("/user/transfer", v1.TransferLedger)
-		apiv1.PUT("/user/withdraw", v1.WithdrawLedger)
-		apiv1.PUT("/user/deposit", v1.DepositLedger)
-		apiv1.PUT("/token/update", v1.UpdateToken)
+		user.PUT("/transfer", v1.TransferLedger)
+
+		user.PUT("/withdraw", v1.WithdrawLedger)
+
+		user.PUT("/deposit", v1.DepositLedger)
+
 	}
 
-	router.Run("localhost:8080")
+	token := router.Group("/api/v1/token")
+	{
+		// @Summary 	Gets a token's data
+		// @Produce  	json
+		// @Param 		token query string true "Token"
+		// @Success 	200 {object} object
+		// @Failure 	400 {object} object
+		// @Router 		/api/v1/token [get]
+		token.GET("", v1.GetToken)
+
+		token.POST("/new", v1.NewToken)
+
+		token.DELETE("/delete", v1.DeleteToken)
+
+		token.PUT("/update", v1.UpdateToken)
+
+	}
+
+	withdraws := router.Group("/api/v1/withdraws")
+	{
+		withdraws.GET("", v1.GetWithdraws)
+
+		withdraws.POST("/new", v1.InsertWithdraw)
+
+		withdraws.DELETE("/delete", v1.DeleteWithdraw)
+
+		withdraws.DELETE("/clean", v1.DeleteProcessedWithdraws)
+
+		withdraws.PUT("/process", v1.ProcessWithdraw)
+	}
+
+	//router.Run("localhost:8080")
 	return router
 }
