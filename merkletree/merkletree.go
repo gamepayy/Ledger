@@ -1,25 +1,30 @@
-package main
+package merkletreeGen
 
 import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
 	"log"
+	"sync"
 
 	"encoding/hex"
 
 	"github.com/cbergoon/merkletree"
 )
 
-// TestContent implements the Content interface provided by merkletree and represents the content stored in the tree.
-type TestContent struct {
-	x string
+type Withdraw struct {
+	Account        string
+	Token          string
+	Amount         string
+	WithdrawString string
 }
 
 // CalculateHash hashes the values of a TestContent
-func (t TestContent) CalculateHash() ([]byte, error) {
+func (w Withdraw) CalculateHash() ([]byte, error) {
 	h := sha256.New()
-	if _, err := h.Write([]byte(t.x)); err != nil {
+	w.WithdrawString = fmt.Sprintf("%s%s%s", w.Account, w.Token, w.Amount)
+
+	if _, err := h.Write([]byte(w.WithdrawString)); err != nil {
 		return nil, err
 	}
 
@@ -27,21 +32,34 @@ func (t TestContent) CalculateHash() ([]byte, error) {
 }
 
 // Equals tests for equality of two Contents
-func (t TestContent) Equals(other merkletree.Content) (bool, error) {
-	otherTC, ok := other.(TestContent)
+func (w Withdraw) Equals(other merkletree.Content) (bool, error) {
+	otherTC, ok := other.(Withdraw)
 	if !ok {
 		return false, errors.New("value is not of type TestContent")
 	}
-	return t.x == otherTC.x, nil
+	return w.WithdrawString == otherTC.WithdrawString, nil
 }
 
-func main() {
+func generateTree(withdraws []Withdraw) (*merkletree.MerkleTree, error) {
 	//Build list of Content to build tree
 	var list []merkletree.Content
-	list = append(list, TestContent{x: "Hello"})
-	list = append(list, TestContent{x: "Hi"})
-	list = append(list, TestContent{x: "Hey"})
-	list = append(list, TestContent{x: "Hola"})
+
+	wg := sync.WaitGroup{}
+	wg.Add(len(withdraws))
+	c := sync.Mutex{}
+	for _, withdraw := range withdraws {
+
+		go func() {
+
+			c.Lock()
+			list = append(list, Withdraw{WithdrawString: withdraw.Account + withdraw.Token + withdraw.Amount})
+			c.Unlock()
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+
+	fmt.Println("List: ", list)
 
 	//Create a new Merkle Tree from the list of Content
 	t, err := merkletree.NewTree(list)
@@ -65,14 +83,28 @@ func main() {
 	}
 	log.Println("Verify Tree: ", vt)
 
-	//Verify a specific content in in the tree
-	vc, err := t.VerifyContent(list[0])
-	if err != nil {
-		log.Fatal(err)
+	//Verify all  contents are in the tree
+	wg = sync.WaitGroup{}
+	wg.Add(len(list))
+	for _, content := range list {
+		contentCpy := content
+		go func() {
+			vc, err := t.VerifyContent(contentCpy)
+			if err != nil {
+				log.Fatal(err)
+			}
+			log.Println("Verify Content: ", vc)
+			wg.Done()
+		}()
 	}
-
-	log.Println("Verify Content: ", vc)
+	wg.Wait()
 
 	//String representation
-	log.Println(t)
+
+	fmt.Println("Tree: ", t)
+	fmt.Println("Tree.Root: ", t.Root)
+	fmt.Println("Tree.Root.Hash: ", t.Root.Hash)
+	fmt.Println("Tree Leafs: ", t.Leafs)
+	fmt.Println("Tree Root Parent Hash: ", t.Leafs[0].Parent.Hash)
+	return t, nil
 }
