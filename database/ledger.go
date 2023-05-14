@@ -156,15 +156,12 @@ func TransferLedger(from, to, amount, token string) (bool, error) {
 	}
 	defer stmt.Close()
 
-	fmt.Println(balanceCheck.NewBalance, from)
-
 	_, err = stmt.Exec(balanceCheck.NewBalance, from)
 	if err != nil {
 		return false, err
 	}
 
 	receiverBalance, _ := SumBalance(to, bigAmount)
-	fmt.Println(receiverBalance.NewBalance, to)
 	// deposit
 	stmt, err = db.Prepare("UPDATE users SET balance = ? WHERE address = ?")
 	if err != nil {
@@ -172,7 +169,6 @@ func TransferLedger(from, to, amount, token string) (bool, error) {
 	}
 	defer stmt.Close()
 
-	fmt.Println(receiverBalance.NewBalance, to)
 	_, err = stmt.Exec(receiverBalance.NewBalance, to)
 	if err != nil {
 		return false, err
@@ -298,8 +294,7 @@ func SumBalance(account string, amount *big.Int) (BalanceCheck, error) {
 
 	ledgerBalance := new(big.Int)
 	ledgerBalance, ok := ledgerBalance.SetString(ledger.Balance, 10)
-	fmt.Println(ledgerBalance, "tonight")
-	fmt.Println(amount, "amount")
+
 	if !ok {
 		return Check, fmt.Errorf("failed to convert string to big.Int")
 	}
