@@ -176,7 +176,7 @@ func GetWithdraws(c *gin.Context) {
 		c.String(http.StatusBadRequest, "failed to unmarshal: %v", err)
 	}
 
-	withdraws, err := database.GetWithdraws(jsonMap["account"].(string), jsonMap["token"].(string))
+	withdraws, err := database.GetWithdraws(jsonMap["account"].(string))
 	if err != nil {
 		c.String(http.StatusBadRequest, "failed to get: %v", err)
 	}

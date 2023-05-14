@@ -2,10 +2,16 @@ package database
 
 import (
 	"log"
-	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
+
+type Withdraw struct {
+	Account string
+	Token   string
+	Amount  string
+	Pending string
+}
 
 // insert
 func InsertWithdraw(account, token, amount string) (bool, error) {
@@ -15,7 +21,7 @@ func InsertWithdraw(account, token, amount string) (bool, error) {
 	}
 
 	// insert
-	stmt, err := db.Prepare("INSERT INTO pending_withdrawals (address, token_address, amount, pending) VALUES (?, ?, ?)")
+	stmt, err := db.Prepare("INSERT INTO pending_withdrawals (address, token_address, amount, pending) VALUES (?, ?, ?, ?)")
 	if err != nil {
 		return false, err
 	}
@@ -45,7 +51,7 @@ func DeleteWithdraw(account, token string) (bool, error) {
 	}
 
 	// insert
-	stmt, err := db.Prepare("DELETE FROM pending_withdrawals WHERE address = ? AND token_address = ? AND pending = false")
+	stmt, err := db.Prepare("DELETE FROM pending_withdrawals WHERE address = ? AND token_address = ? AND pending = 1")
 	if err != nil {
 		return false, err
 	}
@@ -103,13 +109,13 @@ func ProcessWithdraw(account, token string) (bool, error) {
 	}
 
 	// insert
-	stmt, err := db.Prepare("UPDATE pending_withdrawals set pending = false, issueTimestamp = ? WHERE address = ? AND token_address = ?")
+	stmt, err := db.Prepare("UPDATE pending_withdrawals set pending = false WHERE address = ? AND token_address = ?")
 	if err != nil {
 		return false, err
 	}
 	defer stmt.Close()
 
-	res, err := stmt.Exec(time.Now(), account, token)
+	res, err := stmt.Exec(account, token)
 	if err != nil {
 		return false, err
 	}
@@ -125,25 +131,35 @@ func ProcessWithdraw(account, token string) (bool, error) {
 }
 
 // get
-func GetWithdraws(account, token string) (interface{}, error) {
+func GetWithdraws(account string) ([]Withdraw, error) {
 
+	var withdraws []Withdraw
 	db, err := connectDB()
 	if err != nil {
-		return false, err
+		return []Withdraw{}, err
 	}
 
 	// insert
-	stmt, err := db.Prepare("SELECT * FROM pending_withdrawals WHERE address = ? AND token_address = ?")
+	stmt, err := db.Prepare("SELECT * FROM pending_withdrawals WHERE address = ?")
 	if err != nil {
-		return false, err
+		return []Withdraw{}, err
 	}
 	defer stmt.Close()
-
-	res, err := stmt.Exec(account, token)
+	res, err := stmt.Query(account)
 	if err != nil {
-		return false, err
+		return []Withdraw{}, err
 	}
 
-	return res, nil
+	for res.Next() {
+		var row Withdraw
+		err = res.Scan(&row.Account, &row.Token, &row.Amount, &row.Pending)
+		if err != nil {
+			return []Withdraw{}, err
+		} else {
+			withdraws = append(withdraws, row)
+		}
+	}
+
+	return withdraws, nil
 
 }
