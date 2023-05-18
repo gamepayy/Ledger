@@ -217,7 +217,10 @@ func WithdrawLedger(account, token, amount string) (bool, error) {
 	log.Printf("Withdrawal affected %d rows", affect)
 
 	// add to pending withdrawals
-	// stmt, err = db.Prepare("INSERT INTO pending_withdrawals (address, amount) VALUES (?, ?)")
+	_, err = InsertWithdraw(account, token, amount)
+	if err != nil {
+		return false, err
+	}
 
 	return true, nil
 }
