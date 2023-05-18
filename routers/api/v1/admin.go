@@ -59,23 +59,13 @@ func NewToken(c *gin.Context) {
 // @Router 		/token [get]
 func GetToken(c *gin.Context) {
 
-	body := c.Request.Body
+	query := c.Request.URL.Query()
 
-	if body == nil {
-		c.String(http.StatusBadRequest, "no body found")
-		return
+	if query == nil {
+		c.String(http.StatusBadRequest, "no query found")
 	}
 
-	bodyBytes, _ := ioutil.ReadAll(c.Request.Body)
-
-	jsonMap := make(map[string]interface{})
-	err := json.Unmarshal(bodyBytes, &jsonMap)
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to unmarshal: %v", err)
-		return
-	}
-
-	response, err := database.GetToken(jsonMap["address"].(string))
+	response, err := database.GetToken(query["address"][0])
 	if err != nil {
 		c.String(http.StatusBadRequest, "Token not found: %v", err)
 	}

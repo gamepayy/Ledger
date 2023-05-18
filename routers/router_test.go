@@ -28,24 +28,20 @@ func TestAllRoutes(t *testing.T) {
 
 	accountJson := `{"account":"tester16113","balance":"500000000000"}`
 	postBody := strings.NewReader(`{"account":"tester16113","balance":"500000000000"}`)
-	body := strings.NewReader(`{"account":"tester16113"}`)
 
 	EndpointTest(t, router, "POST", "/api/v1/user/new", 200, postBody, `true`)
-	EndpointTest(t, router, "GET", "/api/v1/user", 200, body, accountJson)
+	EndpointTest(t, router, "GET", "/api/v1/user?account=tester16113", 200, strings.NewReader(``), accountJson)
 
-	time.Sleep(1 * time.Second)
+	//time.Sleep(1 * time.Second)
 
-	body = strings.NewReader(`{"address":"0x","name":"Ether","symbol":"ETH","decimals":"18"}`)
+	body := strings.NewReader(`{"address":"0x","name":"Ether","symbol":"ETH","decimals":"18"}`)
 	EndpointTest(t, router, "POST", "/api/v1/token/new", 200, body, `true`)
 
-	body = strings.NewReader(`{"address":"0x"}`)
-	EndpointTest(t, router, "GET", "/api/v1/token", 200, body, `{"address":"0x","name":"Ether","symbol":"ETH","decimals":"18"}`)
+	EndpointTest(t, router, "GET", "/api/v1/token?address=0x", 200, strings.NewReader(``), `{"address":"0x","name":"Ether","symbol":"ETH","decimals":"18"}`)
 
 	body = strings.NewReader(`{"address":"0x","name":"Ether","symbol":"MATIC","decimals":"18" }`)
 	EndpointTest(t, router, "PUT", "/api/v1/token/update", 200, body, `true`)
-
-	body = strings.NewReader(`{"address":"0x"}`)
-	EndpointTest(t, router, "GET", "/api/v1/token", 200, body, `{"address":"0x","name":"Ether","symbol":"MATIC","decimals":"18"}`)
+	EndpointTest(t, router, "GET", "/api/v1/token?address=0x", 200, strings.NewReader(``), `{"address":"0x","name":"Ether","symbol":"MATIC","decimals":"18"}`)
 
 	time.Sleep(1 * time.Second)
 	body = strings.NewReader(`{"address":"0x"}`)
@@ -62,12 +58,10 @@ func TestAllRoutes(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 	accountJson = `{"account":"tester16113","balance":"450000000000"}`
-	body = strings.NewReader(`{"account":"tester16113"}`)
-	EndpointTest(t, router, "GET", "/api/v1/user", 200, body, accountJson)
+	EndpointTest(t, router, "GET", "/api/v1/user?account=tester16113", 200, strings.NewReader(``), accountJson)
 
 	accountJson = `{"account":"tester1111155555","balance":"50000000000"}`
-	body = strings.NewReader(`{"account":"tester1111155555"}`)
-	EndpointTest(t, router, "GET", "/api/v1/user", 200, body, accountJson)
+	EndpointTest(t, router, "GET", "/api/v1/user?account=tester1111155555", 200, strings.NewReader(``), accountJson)
 
 	body = strings.NewReader(`{"account":"tester16113"}`)
 	EndpointTest(t, router, "DELETE", "/api/v1/user/delete", 200, body, `"DB deletion success."`)
@@ -76,16 +70,14 @@ func TestAllRoutes(t *testing.T) {
 	EndpointTest(t, router, "PUT", "/api/v1/user/deposit", 200, body, `true`)
 
 	accountJson = `{"account":"tester1111155555","balance":"100000000000"}`
-	body = strings.NewReader(`{"account":"tester1111155555"}`)
-	EndpointTest(t, router, "GET", "/api/v1/user", 200, body, accountJson)
+	EndpointTest(t, router, "GET", "/api/v1/user?account=tester1111155555", 200, strings.NewReader(``), accountJson)
 
 	accountJson = `{"account":"tester1111155555","balance":"50000000000"}`
 	body = strings.NewReader(`{"account":"tester1111155555","amount":"50000000000","currency":"0x"}`)
 	EndpointTest(t, router, "PUT", "/api/v1/user/withdraw", 200, body, `true`)
 
 	accountJson = `{"account":"tester1111155555","balance":"50000000000"}`
-	body = strings.NewReader(`{"account":"tester1111155555"}`)
-	EndpointTest(t, router, "GET", "/api/v1/user", 200, body, accountJson)
+	EndpointTest(t, router, "GET", "/api/v1/user?account=tester1111155555", 200, strings.NewReader(``), accountJson)
 
 }
 
@@ -103,8 +95,7 @@ func TestPendingWithdrawsRoutes(t *testing.T) {
 	time.Sleep(1 * time.Second)
 	EndpointTest(t, router, "POST", "/api/v1/user/new", 200, postBody, `true`)
 
-	body = strings.NewReader(`{"account":"tester16113"}`)
-	EndpointTest(t, router, "GET", "/api/v1/user", 200, body, accountJson)
+	EndpointTest(t, router, "GET", "/api/v1/user?account=tester16113", 200, strings.NewReader(``), accountJson)
 
 	// 0. delete all pending withdraws
 
@@ -124,9 +115,7 @@ func TestPendingWithdrawsRoutes(t *testing.T) {
 	// 2. get this pending withdraw
 
 	time.Sleep(3 * time.Second)
-
-	body = strings.NewReader(`{"account":"tester16113"}`)
-	EndpointTest(t, router, "GET", "/api/v1/withdraws", 200, body, `[{"Account":"tester16113","Token":"0x","Amount":"5000000000","Pending":"1"}]`)
+	EndpointTest(t, router, "GET", "/api/v1/withdraws?account=tester16113", 200, strings.NewReader(``), `[{"Account":"tester16113","Token":"0x","Amount":"5000000000","Pending":"1"}]`)
 
 	// 3. delete this pending withdraw
 
@@ -134,9 +123,7 @@ func TestPendingWithdrawsRoutes(t *testing.T) {
 	EndpointTest(t, router, "DELETE", "/api/v1/withdraws/delete", 200, body, `true`)
 
 	// 4. get this pending withdraw again (should be deleted)
-
-	body = strings.NewReader(`{"account":"tester16113"}`)
-	EndpointTest(t, router, "GET", "/api/v1/withdraws", 200, body, `null`)
+	EndpointTest(t, router, "GET", "/api/v1/withdraws?account=tester16113", 200, strings.NewReader(``), `null`)
 
 	// 5. create a new pending withdraw
 
@@ -150,9 +137,7 @@ func TestPendingWithdrawsRoutes(t *testing.T) {
 	EndpointTest(t, router, "POST", "/api/v1/withdraws/new", 200, body, `true`)
 
 	// 6. get all pending withdraws
-
-	body = strings.NewReader(`{"account":"tester16113"}`)
-	EndpointTest(t, router, "GET", "/api/v1/withdraws", 200, body, "[{\"Account\":\"tester16113\",\"Token\":\"0x\",\"Amount\":\"150000000\",\"Pending\":\"1\"},{\"Account\":\"tester16113\",\"Token\":\"1x\",\"Amount\":\"20000000\",\"Pending\":\"1\"},{\"Account\":\"tester16113\",\"Token\":\"2x\",\"Amount\":\"3000000\",\"Pending\":\"1\"}]")
+	EndpointTest(t, router, "GET", "/api/v1/withdraws?account=tester16113", 200, strings.NewReader(``), "[{\"Account\":\"tester16113\",\"Token\":\"0x\",\"Amount\":\"150000000\",\"Pending\":\"1\"},{\"Account\":\"tester16113\",\"Token\":\"1x\",\"Amount\":\"20000000\",\"Pending\":\"1\"},{\"Account\":\"tester16113\",\"Token\":\"2x\",\"Amount\":\"3000000\",\"Pending\":\"1\"}]")
 
 	// 7. process 1x pending withdraws
 
@@ -160,9 +145,7 @@ func TestPendingWithdrawsRoutes(t *testing.T) {
 	EndpointTest(t, router, "PUT", "/api/v1/withdraws/process", 200, body, `true`)
 
 	// 8. get all pending withdraws again
-
-	body = strings.NewReader(`{"account":"tester16113", "token":"0x"}`)
-	EndpointTest(t, router, "GET", "/api/v1/withdraws", 200, body, `[{"Account":"tester16113","Token":"0x","Amount":"150000000","Pending":"0"},{"Account":"tester16113","Token":"1x","Amount":"20000000","Pending":"1"},{"Account":"tester16113","Token":"2x","Amount":"3000000","Pending":"1"}]`)
+	EndpointTest(t, router, "GET", "/api/v1/withdraws?account=tester16113&token=0x", 200, strings.NewReader(``), `[{"Account":"tester16113","Token":"0x","Amount":"150000000","Pending":"0"},{"Account":"tester16113","Token":"1x","Amount":"20000000","Pending":"1"},{"Account":"tester16113","Token":"2x","Amount":"3000000","Pending":"1"}]`)
 
 	// 9. delete all processed withdraws
 
@@ -170,9 +153,7 @@ func TestPendingWithdrawsRoutes(t *testing.T) {
 	EndpointTest(t, router, "DELETE", "/api/v1/withdraws/clean", 200, body, `true`)
 
 	// 10. get all pending withdraws again
-
-	body = strings.NewReader(`{"account":"tester16113", "token":"0x"}`)
-	EndpointTest(t, router, "GET", "/api/v1/withdraws", 200, body, "[{\"Account\":\"tester16113\",\"Token\":\"1x\",\"Amount\":\"20000000\",\"Pending\":\"1\"},{\"Account\":\"tester16113\",\"Token\":\"2x\",\"Amount\":\"3000000\",\"Pending\":\"1\"}]")
+	EndpointTest(t, router, "GET", "/api/v1/withdraws?account=tester16113&token=0x", 200, strings.NewReader(``), "[{\"Account\":\"tester16113\",\"Token\":\"1x\",\"Amount\":\"20000000\",\"Pending\":\"1\"},{\"Account\":\"tester16113\",\"Token\":\"2x\",\"Amount\":\"3000000\",\"Pending\":\"1\"}]")
 
 	// 11. delete all pending withdraws
 

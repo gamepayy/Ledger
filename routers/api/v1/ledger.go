@@ -24,23 +24,13 @@ type Ledger struct {
 // @Router 		/user [get]
 func GetLedger(c *gin.Context) {
 
-	body := c.Request.Body
+	query := c.Request.URL.Query()
 
-	if body == nil {
-		c.String(http.StatusBadRequest, "no body found")
-		return
+	if query == nil {
+		c.String(http.StatusBadRequest, "no query found")
 	}
 
-	bodyBytes, _ := ioutil.ReadAll(c.Request.Body)
-
-	jsonMap := make(map[string]interface{})
-	err := json.Unmarshal(bodyBytes, &jsonMap)
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to unmarshal: %v", err)
-		return
-	}
-
-	ledger, err := database.GetLedger(jsonMap["account"].(string))
+	ledger, err := database.GetLedger(query["account"][0])
 	if err != nil {
 		c.String(http.StatusBadRequest, "failed to get: %v", err)
 	}

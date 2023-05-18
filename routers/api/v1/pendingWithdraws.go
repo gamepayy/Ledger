@@ -159,24 +159,14 @@ func ProcessWithdraw(c *gin.Context) {
 // @Failure 	400 {object} object
 // @Router 		/withdraws [get]
 func GetWithdraws(c *gin.Context) {
-	body := c.Request.Body
 
-	if body == nil {
-		c.String(http.StatusBadRequest, "no body found")
+	query := c.Request.URL.Query()
+
+	if query == nil {
+		c.String(http.StatusBadRequest, "no query found")
 	}
 
-	bodyBytes, err := ioutil.ReadAll(c.Request.Body)
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to read body: %v", err)
-	}
-
-	jsonMap := make(map[string]interface{})
-	err = json.Unmarshal(bodyBytes, &jsonMap)
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to unmarshal: %v", err)
-	}
-
-	withdraws, err := database.GetWithdraws(jsonMap["account"].(string))
+	withdraws, err := database.GetWithdraws(query["account"][0])
 	if err != nil {
 		c.String(http.StatusBadRequest, "failed to get: %v", err)
 	}
