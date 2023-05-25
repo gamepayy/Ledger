@@ -3,7 +3,6 @@ module gamepayy_ledger
 go 1.19
 
 require (
-	github.com/cbergoon/merkletree v0.2.0
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/joho/godotenv v1.5.1
