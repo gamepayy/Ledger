@@ -1,11 +1,11 @@
 package routers
 
 import (
-	v1 "gamepayy_ledger/routers/api/v1"
-
 	"github.com/gin-gonic/gin"
 
 	docs "gamepayy_ledger/docs"
+	jwt "gamepayy_ledger/middleware/jwt"
+	v1 "gamepayy_ledger/routers/api/v1"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -13,6 +13,24 @@ import (
 
 func InitRouter() *gin.Engine {
 	router := gin.New()
+	authMiddleware, err := jwt.CreateAuthMiddleware()
+	if err != nil {
+		panic("JWT Error:" + err.Error())
+	}
+
+	errInit := authMiddleware.MiddlewareInit()
+
+	if errInit != nil {
+		panic("authMiddleware.MiddlewareInit() Error:" + errInit.Error())
+	}
+
+	router.POST("/login", authMiddleware.LoginHandler)
+	auth := router.Group("/auth")
+	auth.GET("/refresh_token", authMiddleware.RefreshHandler)
+	auth.Use(authMiddleware.MiddlewareFunc())
+	{
+		auth.GET("/hello", jwt.HelloHandler)
+	}
 
 	docs.SwaggerInfo.BasePath = "/api/v1"
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
