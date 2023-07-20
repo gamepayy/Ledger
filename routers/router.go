@@ -8,6 +8,7 @@ import (
 
 	docs "gamepayy_ledger/docs"
 	jwt "gamepayy_ledger/middleware/jwt"
+	logging "gamepayy_ledger/middleware/logging"
 	v1 "gamepayy_ledger/routers/api/v1"
 
 	swaggerFiles "github.com/swaggo/files"
@@ -35,6 +36,8 @@ func InitRouter() *gin.Engine {
 	})
 
 	router.Use(rateLimitMiddleware)
+
+	router.Use(logging.GinzapLogger())
 
 	authMiddleware, err := jwt.CreateAuthMiddleware()
 	if err != nil {
