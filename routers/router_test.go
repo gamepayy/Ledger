@@ -166,3 +166,15 @@ func TestPendingWithdrawsRoutes(t *testing.T) {
 	EndpointTest(t, router, "DELETE", "/api/v1/user/delete", 200, body, `"DB deletion success."`)
 
 }
+
+func TestRateLimitingMiddlewareOnGet(t *testing.T) {
+	router := InitRouter()
+
+	for i := 1; i <= 5; i++ {
+		EndpointTest(t, router, "GET", "/api/v1/user?account=tester1111155555", 200, nil, `{"account":"tester1111155555","balance":"50000000000"}`)
+	}
+
+	// This should be the 6th request within a second, which should fail due to rate limiting
+	EndpointTest(t, router, "GET", "/api/v1/user?account=tester1111155555", 429, nil, "Too many requests. Try again in 1s")
+
+}
