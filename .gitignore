@@ -1,2 +1,5 @@
 .env
 gamepayy_ledger
+
+logs
+logs/logs.json

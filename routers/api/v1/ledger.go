@@ -1,9 +1,6 @@
 package v1
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"net/http"
 
 	database "gamepayy_ledger/database"
@@ -16,186 +13,152 @@ type Ledger struct {
 	Balance string `json:"balance"`
 }
 
+type TransferRequest struct {
+	From     string `json:"from"`
+	To       string `json:"to"`
+	Amount   string `json:"amount"`
+	Currency string `json:"currency"`
+}
+
+type LedgerChangeRequest struct {
+	Account  string `json:"account"`
+	Amount   string `json:"amount"`
+	Currency string `json:"currency"`
+}
+
 // @Summary 	Gets an account's data
 // @Produce  	json
 // @Param 		account query string true "Account"
-// @Success 	200 {object} object
-// @Failure 	400 {object} object
+// @Success 	200 {object} Ledger
+// @Failure 	400 {object} string "Bad request: no query found"
+// @Failure 	404 {object} string "Account not found"
 // @Router 		/user [get]
 func GetLedger(c *gin.Context) {
-
-	query := c.Request.URL.Query()
-
-	if query == nil {
-		c.String(http.StatusBadRequest, "no query found")
+	account := c.Query("account")
+	if account == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request: no query found"})
+		return
 	}
 
-	ledger, err := database.GetLedger(query["account"][0])
+	ledger, err := database.GetLedger(account)
 	if err != nil {
-		c.String(http.StatusBadRequest, "failed to get: %v", err)
+		c.JSON(http.StatusNotFound, gin.H{"error": "Account not found"})
+		return
 	}
-	c.JSON(http.StatusOK, ledger)
 
+	c.JSON(http.StatusOK, ledger)
 }
 
 // @Summary 	Creates a new account with a ledger
 // @Produce  	json
-// @Success 	200 {object} object
-// @Failure 	400 {object} object
+// @Param 		account body Ledger true "Account details"
+// @Success 	200 {object} Ledger
+// @Failure 	400 {object} string "Bad request: no body found"
+// @Failure 	500 {object} string "Internal server error: error message"
 // @Router 		/user/new [post]
 func NewLedger(c *gin.Context) {
+	var ledger database.Ledger
 
-	body := c.Request.Body
-
-	if body == nil {
-		c.String(http.StatusBadRequest, "no body found")
+	if err := c.ShouldBindJSON(&ledger); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request: no body found"})
 		return
 	}
 
-	bodyBytes, _ := ioutil.ReadAll(c.Request.Body)
-
-	jsonMap := make(map[string]interface{})
-	err := json.Unmarshal(bodyBytes, &jsonMap)
-
+	result, err := database.NewLedger(ledger)
 	if err != nil {
-		c.String(http.StatusBadRequest, "failed to unmarshal: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error: " + err.Error()})
 		return
 	}
 
-	ledger := &database.Ledger{
-		Account: jsonMap["account"].(string),
-		Balance: jsonMap["balance"].(string),
-	}
-
-	result, err := database.NewLedger(*ledger)
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to create: %v", err)
-	}
 	c.JSON(http.StatusOK, result)
 }
 
 // @Summary Deletes an account
 // @Produce  json
-// @Param name body string true "Username" default(user)
-// @Success 200 {object} object
-// @Failure 400 {object} object
+// @Param account body string true "Account"
+// @Success 200 {object} string "Account successfully deleted"
+// @Failure 500 {object} string "Internal server error: error message"
 // @Router /user/delete [delete]
 func DeleteLedger(c *gin.Context) {
-
-	body := c.Request.Body
-
-	if body == nil {
-		c.String(http.StatusBadRequest, "no body found")
+	var request struct {
+		Account string `json:"account" binding:"required"`
 	}
 
-	bodyBytes, _ := ioutil.ReadAll(c.Request.Body)
-
-	jsonMap := make(map[string]interface{})
-	err := json.Unmarshal(bodyBytes, &jsonMap)
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to unmarshal: %v", err)
+	if err := c.BindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request: no body found"})
+		return
 	}
 
-	result, err := database.DeleteLedger(jsonMap["account"].(string))
-
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to delete: %v", err)
+	if _, err := database.DeleteLedger(request.Account); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error: " + err.Error()})
+		return
 	}
-	c.JSON(http.StatusOK, result)
+
+	c.JSON(http.StatusOK, gin.H{"message": "Account successfully deleted"})
 }
 
 // @Summary Transfers an amount from one account to another
 // @Produce  json
-// @Param name body string true "from" default(user)
-// @Param name body string true "to" default(user)
-// @Param name body string true "amount" default(1)
-// @Param name body string true "token" default(0x)
+// @Param request body TransferRequest true "Transfer details"
 // @Success 200 {object} object
 // @Failure 400 {object} object
 // @Router /user/transfer [put]
 func TransferLedger(c *gin.Context) {
-
-	body := c.Request.Body
-	if body == nil {
-		c.String(http.StatusBadRequest, "no body found")
+	var request TransferRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request: " + err.Error()})
 		return
 	}
 
-	bodyBytes, _ := ioutil.ReadAll(c.Request.Body)
-	jsonMap := make(map[string]interface{})
-	err := json.Unmarshal(bodyBytes, &jsonMap)
+	result, err := database.TransferLedger(request.From, request.To, request.Amount, request.Currency)
 	if err != nil {
-		c.String(http.StatusBadRequest, "failed to unmarshal: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to transfer: " + err.Error()})
 		return
 	}
 
-	fmt.Println("amount", jsonMap["amount"].(string))
-
-	result, err := database.TransferLedger(jsonMap["from"].(string), jsonMap["to"].(string), jsonMap["amount"].(string), jsonMap["currency"].(string))
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to transfer: %v", err)
-	}
 	c.JSON(http.StatusOK, result)
 }
 
 // @Summary Withdraws an amount from an account
 // @Produce  json
-// @Param name body string true "account" default(user)
-// @Param amount body string true "amount" default(1)
-// @Param token body string true "token" default(0x)
+// @Param request body LedgerChangeRequest true "Withdraw details"
 // @Success 200 {object} object
 // @Failure 400 {object} object
 // @Router /user/withdraw [put]
 func WithdrawLedger(c *gin.Context) {
-
-	body := c.Request.Body
-	if body == nil {
-		c.String(http.StatusBadRequest, "no body found")
+	var request LedgerChangeRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request: " + err.Error()})
 		return
 	}
 
-	bodyBytes, _ := ioutil.ReadAll(c.Request.Body)
-	jsonMap := make(map[string]interface{})
-	err := json.Unmarshal(bodyBytes, &jsonMap)
+	result, err := database.WithdrawLedger(request.Account, request.Currency, request.Amount)
 	if err != nil {
-		c.String(http.StatusBadRequest, "failed to unmarshal: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to withdraw: " + err.Error()})
 		return
 	}
 
-	result, err := database.WithdrawLedger(jsonMap["account"].(string), jsonMap["currency"].(string), jsonMap["amount"].(string))
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to withdraw: %v", err)
-	}
 	c.JSON(http.StatusOK, result)
 }
 
 // @Summary Deposits an amount to an account
 // @Produce  json
-// @Param name body string true "account" default(user)
-// @Param amount body string true "amount" default(1)
-// @Param token body string true "token" default(0x)
+// @Param request body LedgerChangeRequest true "Deposit details"
 // @Success 200 {object} object
 // @Failure 400 {object} object
 // @Router /user/deposit [put]
 func DepositLedger(c *gin.Context) {
-
-	body := c.Request.Body
-	if body == nil {
-		c.String(http.StatusBadRequest, "no body found")
+	var request LedgerChangeRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request: " + err.Error()})
 		return
 	}
 
-	bodyBytes, _ := ioutil.ReadAll(c.Request.Body)
-	jsonMap := make(map[string]interface{})
-	err := json.Unmarshal(bodyBytes, &jsonMap)
+	result, err := database.DepositLedger(request.Account, request.Currency, request.Amount)
 	if err != nil {
-		c.String(http.StatusBadRequest, "failed to unmarshal: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to deposit: " + err.Error()})
 		return
 	}
 
-	result, err := database.DepositLedger(jsonMap["account"].(string), jsonMap["currency"].(string), jsonMap["amount"].(string))
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to deposit: %v", err)
-	}
 	c.JSON(http.StatusOK, result)
 }

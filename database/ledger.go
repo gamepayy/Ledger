@@ -137,7 +137,10 @@ func TransferLedger(from, to, amount, token string) (bool, error) {
 	}
 
 	bigAmount := new(big.Int)
-	bigAmount, _ = bigAmount.SetString(amount, 10)
+	bigAmount, ok := bigAmount.SetString(amount, 10)
+	if !ok {
+		return false, fmt.Errorf("failed to convert string to big.Int")
+	}
 
 	// check if user has enough balance
 	balanceCheck, err := HasEnoughBalance(from, bigAmount)

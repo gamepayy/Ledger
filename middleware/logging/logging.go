@@ -14,8 +14,8 @@ import (
 func GinzapLogger() gin.HandlerFunc {
 	config := zap.Config{
 		Level:            zap.NewAtomicLevelAt(zap.DebugLevel),
-		OutputPaths:      []string{"logs/logs.json"},
-		ErrorOutputPaths: []string{"logs/errors.json"},
+		OutputPaths:      []string{"logs.json"},
+		ErrorOutputPaths: []string{"errors.json"},
 		Encoding:         "json",
 	}
 

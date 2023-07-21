@@ -1,51 +1,39 @@
 package v1
 
 import (
-	"encoding/json"
-	"gamepayy_ledger/database"
-	"io/ioutil"
 	"net/http"
+
+	database "gamepayy_ledger/database"
 
 	"github.com/gin-gonic/gin"
 )
 
+// Token holds token information
+// swagger:model Token
+type Token struct {
+	Address  string `json:"address"`
+	Decimals string `json:"decimals"`
+	Symbol   string `json:"symbol"`
+	Name     string `json:"name"`
+}
+
 // @Summary Creates a new token
 // @Produce json
-// @Param address body string true "Address"
-// @Param decimals body string true "Decimals"
-// @Param symbol body string true "Symbol"
-// @Param name body string true "Name"
-// @Success 200 {object} object
-// @Failure 400 {object} object
+// @Param body body Token true "Token"
+// @Success 200 {object} bool "True"
+// @Failure 400 {object} string "Bad request: error message"
+// @Failure 500 {object} string "Internal server error: error message"
 // @Router /token/new [post]
 func NewToken(c *gin.Context) {
-
-	body := c.Request.Body
-
-	if body == nil {
-		c.String(http.StatusBadRequest, "no body found")
+	var token database.Token
+	if err := c.ShouldBindJSON(&token); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request: " + err.Error()})
 		return
 	}
 
-	bodyBytes, _ := ioutil.ReadAll(c.Request.Body)
-
-	jsonMap := make(map[string]interface{})
-	err := json.Unmarshal(bodyBytes, &jsonMap)
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to unmarshal: %v", err)
+	if _, err := database.NewToken(token); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error: " + err.Error()})
 		return
-	}
-
-	token := &database.Token{
-		Address:  jsonMap["address"].(string),
-		Decimals: jsonMap["decimals"].(string),
-		Symbol:   jsonMap["symbol"].(string),
-		Name:     jsonMap["name"].(string),
-	}
-
-	_, err = database.NewToken(*token)
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to create: %v", err)
 	}
 
 	c.JSON(http.StatusOK, true)
@@ -54,93 +42,68 @@ func NewToken(c *gin.Context) {
 // @Summary 	Gets a token's data
 // @Produce  	json
 // @Param 		address query string true "Token"
-// @Success 	200 {object} object
-// @Failure 	400 {object} object
+// @Success 	200 {object} Token
+// @Failure 	400 {object} string "Bad request: no query found"
+// @Failure 	404 {object} string "Token not found"
 // @Router 		/token [get]
 func GetToken(c *gin.Context) {
+	address := c.Query("address")
 
-	query := c.Request.URL.Query()
-
-	if query == nil {
-		c.String(http.StatusBadRequest, "no query found")
+	if address == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request: no query found"})
+		return
 	}
 
-	response, err := database.GetToken(query["address"][0])
+	token, err := database.GetToken(address)
 	if err != nil {
-		c.String(http.StatusBadRequest, "Token not found: %v", err)
+		c.JSON(http.StatusNotFound, gin.H{"error": "Token not found"})
+		return
 	}
 
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, token)
 }
 
 // @Summary Deletes a token
 // @Param address query string true "Token"
-// @Success 200 {object} object
-// @Failure 400 {object} object
+// @Success 200 {object} string "DB deletion success"
+// @Failure 400 {object} string "Bad request: error message"
+// @Failure 500 {object} string "Internal server error: error message"
 // @Router /token/delete [delete]
 func DeleteToken(c *gin.Context) {
-
-	body := c.Request.Body
-
-	if body == nil {
-		c.String(http.StatusBadRequest, "no body found")
+	var request struct {
+		Address string `json:"address" binding:"required"`
 	}
 
-	bodyBytes, _ := ioutil.ReadAll(c.Request.Body)
-
-	jsonMap := make(map[string]interface{})
-
-	err := json.Unmarshal(bodyBytes, &jsonMap)
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to unmarshal: %v", err)
+	if err := c.BindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request: no body found"})
+		return
 	}
 
-	response, err := database.DeleteToken(jsonMap["address"].(string))
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to delete: %v", err)
+	if _, err := database.DeleteToken(request.Address); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error: " + err.Error()})
+		return
 	}
 
-	c.JSON(http.StatusOK, response)
-
+	c.JSON(http.StatusOK, "DB deletion success")
 }
 
 // @Summary Updates a token's data
 // @Produce json
-// @Param address body string true "Token"
-// @Param decimals body string true "Decimals"
-// @Param symbol body string true "Symbol"
-// @Param name body string true "Name"
-// @Success 200 {object} object
-// @Failure 400 {object} object
+// @Param body body Token true "Token"
+// @Success 200 {object} bool "True"
+// @Failure 400 {object} string "Bad request: error message"
+// @Failure 500 {object} string "Internal server error: error message"
 // @Router /token/update [put]
 func UpdateToken(c *gin.Context) {
-
-	body := c.Request.Body
-
-	if body == nil {
-		c.String(http.StatusBadRequest, "no body found")
+	var token database.Token
+	if err := c.ShouldBindJSON(&token); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request: " + err.Error()})
 		return
 	}
 
-	bodyBytes, _ := ioutil.ReadAll(c.Request.Body)
-
-	jsonMap := make(map[string]interface{})
-	err := json.Unmarshal(bodyBytes, &jsonMap)
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to unmarshal: %v", err)
+	if _, err := database.UpdateToken(token); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error: " + err.Error()})
 		return
-	}
-
-	token := database.Token{
-		Address:  jsonMap["address"].(string),
-		Decimals: jsonMap["decimals"].(string),
-		Symbol:   jsonMap["symbol"].(string),
-		Name:     jsonMap["name"].(string),
-	}
-
-	_, err = database.UpdateToken(token)
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to create: %v", err)
 	}
 
 	c.JSON(http.StatusOK, true)

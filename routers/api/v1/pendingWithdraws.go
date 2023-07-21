@@ -1,8 +1,6 @@
 package v1
 
 import (
-	"encoding/json"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -21,155 +19,112 @@ type Withdraw struct {
 
 // @Summary 	Inserts a pending withdraw into the database
 // @Produce  	json
-// @Param 		account body string true "Account"
-// @Param 		token body string true "Token"
-// @Param 		amount body string true "Amount"
-// @Accept json
-// @Success 	200 {object} object
-// @Failure 	400 {object} object
+// @Param body body Withdraw true "Withdraw"
+// @Success 	200 {object} bool "True"
+// @Failure 	400 {object} string "Bad request: error message"
+// @Failure 	500 {object} string "Internal server error: error message"
 // @Router 		/withdraws/new [post]
 func InsertWithdraw(c *gin.Context) {
-	body := c.Request.Body
-
-	if body == nil {
-		c.String(http.StatusBadRequest, "no body found")
+	var withdraw Withdraw
+	if err := c.ShouldBindJSON(&withdraw); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request: " + err.Error()})
+		return
 	}
 
-	bodyBytes, err := ioutil.ReadAll(c.Request.Body)
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to read body: %v", err)
+	if _, err := database.InsertWithdraw(withdraw.Account, withdraw.Token, withdraw.Amount); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error: " + err.Error()})
+		return
 	}
 
-	jsonMap := make(map[string]interface{})
-	err = json.Unmarshal(bodyBytes, &jsonMap)
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to unmarshal: %v", err)
-	}
-
-	withdraws, err := database.InsertWithdraw(jsonMap["account"].(string), jsonMap["token"].(string), jsonMap["amount"].(string))
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to get: %v", err)
-	}
-	c.JSON(http.StatusOK, withdraws)
+	c.JSON(http.StatusOK, true)
 }
 
 // @Summary 	Removes a pending withdraw from the database
 // @Produce  	json
-// @Param 		account body string true "Account"
-// @Param 		token body string true "Token"
-// @Accept json
-// @Success 	200 {object} object
-// @Failure 	400 {object} object
+// @Param body body Withdraw true "Withdraw"
+// @Success 	200 {object} bool "True"
+// @Failure 	400 {object} string "Bad request: error message"
+// @Failure 	500 {object} string "Internal server error: error message"
 // @Router 		/withdraws/delete [delete]
 func DeleteWithdraw(c *gin.Context) {
-	body := c.Request.Body
-
-	if body == nil {
-		c.String(http.StatusBadRequest, "no body found")
+	var request struct {
+		Account string `json:"account" binding:"required"`
+		Token   string `json:"token" binding:"required"`
 	}
 
-	bodyBytes, err := ioutil.ReadAll(c.Request.Body)
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to read body: %v", err)
+	if err := c.BindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request: no body found"})
+		return
 	}
 
-	jsonMap := make(map[string]interface{})
-	err = json.Unmarshal(bodyBytes, &jsonMap)
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to unmarshal: %v", err)
+	if _, err := database.DeleteWithdraw(request.Account, request.Token); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error: " + err.Error()})
+		return
 	}
 
-	withdraws, err := database.DeleteWithdraw(jsonMap["account"].(string), jsonMap["token"].(string))
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to get: %v", err)
-	}
-	c.JSON(http.StatusOK, withdraws)
+	c.JSON(http.StatusOK, true)
 }
 
 // @Summary 	Removes all finished withdraws from the database and adds them to the finished withdraws table
 // @Produce  	json
-// @Accept json
-// @Success 	200 {object} object
-// @Failure 	400 {object} object
+// @Success 	200 {object} bool "True"
+// @Failure 	500 {object} string "Internal server error: error message"
 // @Router 		/withdraws/clean [delete]
 func DeleteProcessedWithdraws(c *gin.Context) {
-	body := c.Request.Body
-
-	if body == nil {
-		c.String(http.StatusBadRequest, "no body found")
+	if _, err := database.DeleteProcessedWithdraws(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error: " + err.Error()})
+		return
 	}
 
-	bodyBytes, err := ioutil.ReadAll(c.Request.Body)
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to read body: %v", err)
-	}
-
-	jsonMap := make(map[string]interface{})
-	err = json.Unmarshal(bodyBytes, &jsonMap)
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to unmarshal: %v", err)
-	}
-
-	withdraws, err := database.DeleteProcessedWithdraws()
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to get: %v", err)
-	}
-	c.JSON(http.StatusOK, withdraws)
+	c.JSON(http.StatusOK, true)
 }
 
 // @Summary 	Sets a pending withdraw to finished
 // @Produce  	json
-// @Param 		account body string true "Account"
-// @Param 		token body string true "Token"
-// @Accept json
-// @Success 	200 {object} object
-// @Failure 	400 {object} object
+// @Param body body Withdraw true "Withdraw"
+// @Success 	200 {object} bool "True"
+// @Failure 	400 {object} string "Bad request: error message"
+// @Failure 	500 {object} string "Internal server error: error message"
 // @Router 		/withdraws/process [put]
 func ProcessWithdraw(c *gin.Context) {
-	body := c.Request.Body
-
-	if body == nil {
-		c.String(http.StatusBadRequest, "no body found")
+	var request struct {
+		Account string `json:"account" binding:"required"`
+		Token   string `json:"token" binding:"required"`
 	}
 
-	bodyBytes, err := ioutil.ReadAll(c.Request.Body)
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to read body: %v", err)
+	if err := c.BindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request: no body found"})
+		return
 	}
 
-	jsonMap := make(map[string]interface{})
-	err = json.Unmarshal(bodyBytes, &jsonMap)
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to unmarshal: %v", err)
+	if _, err := database.ProcessWithdraw(request.Account, request.Token); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error: " + err.Error()})
+		return
 	}
 
-	withdraws, err := database.ProcessWithdraw(jsonMap["account"].(string), jsonMap["token"].(string))
-	if err != nil {
-		c.String(http.StatusBadRequest, "failed to get: %v", err)
-	}
-	c.JSON(http.StatusOK, withdraws)
+	c.JSON(http.StatusOK, true)
 }
 
 // @Summary 	Gets an account's withdraws data
 // @Produce  	json
-// @Param 		account body string true "Account"
-// @Param 		token body string true "Token"
-// @Accept json
-// @Success 	200 {object} object
-// @Failure 	400 {object} object
+// @Param account query string true "Account"
+// @Success 	200 {array} Withdraw
+// @Failure 	400 {object} string "Bad request: error message"
+// @Failure 	500 {object} string "Internal server error: error message"
 // @Router 		/withdraws [get]
 func GetWithdraws(c *gin.Context) {
+	account := c.Query("account")
 
-	query := c.Request.URL.Query()
-
-	if query == nil {
-		c.String(http.StatusBadRequest, "no query found")
+	if account == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request: no account provided"})
+		return
 	}
 
-	withdraws, err := database.GetWithdraws(query["account"][0])
+	withdraws, err := database.GetWithdraws(account)
 	if err != nil {
-		c.String(http.StatusBadRequest, "failed to get: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error: " + err.Error()})
+		return
 	}
-	c.JSON(http.StatusOK, withdraws)
 
+	c.JSON(http.StatusOK, withdraws)
 }

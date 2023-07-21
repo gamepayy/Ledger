@@ -1,4 +1,56 @@
 basePath: /api/v1
+definitions:
+  v1.Ledger:
+    properties:
+      account:
+        type: string
+      balance:
+        type: string
+    type: object
+  v1.LedgerChangeRequest:
+    properties:
+      account:
+        type: string
+      amount:
+        type: string
+      currency:
+        type: string
+    type: object
+  v1.Token:
+    properties:
+      address:
+        type: string
+      decimals:
+        type: string
+      name:
+        type: string
+      symbol:
+        type: string
+    type: object
+  v1.TransferRequest:
+    properties:
+      amount:
+        type: string
+      currency:
+        type: string
+      from:
+        type: string
+      to:
+        type: string
+    type: object
+  v1.Withdraw:
+    properties:
+      account:
+        type: string
+      amount:
+        type: string
+      issueTimestamp:
+        type: string
+      pending:
+        type: boolean
+      token:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -22,11 +74,15 @@ paths:
         "200":
           description: OK
           schema:
-            type: object
+            $ref: '#/definitions/v1.Token'
         "400":
-          description: Bad Request
+          description: 'Bad request: no query found'
           schema:
-            type: object
+            type: string
+        "404":
+          description: Token not found
+          schema:
+            type: string
       summary: Gets a token's data
   /token/delete:
     delete:
@@ -38,91 +94,67 @@ paths:
         type: string
       responses:
         "200":
-          description: OK
+          description: DB deletion success
           schema:
-            type: object
+            type: string
         "400":
-          description: Bad Request
+          description: 'Bad request: error message'
           schema:
-            type: object
+            type: string
+        "500":
+          description: 'Internal server error: error message'
+          schema:
+            type: string
       summary: Deletes a token
   /token/new:
     post:
       parameters:
-      - description: Address
+      - description: Token
         in: body
-        name: address
+        name: body
         required: true
         schema:
-          type: string
-      - description: Decimals
-        in: body
-        name: decimals
-        required: true
-        schema:
-          type: string
-      - description: Symbol
-        in: body
-        name: symbol
-        required: true
-        schema:
-          type: string
-      - description: Name
-        in: body
-        name: name
-        required: true
-        schema:
-          type: string
+          $ref: '#/definitions/v1.Token'
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: "True"
           schema:
-            type: object
+            type: boolean
         "400":
-          description: Bad Request
+          description: 'Bad request: error message'
           schema:
-            type: object
+            type: string
+        "500":
+          description: 'Internal server error: error message'
+          schema:
+            type: string
       summary: Creates a new token
   /token/update:
     put:
       parameters:
       - description: Token
         in: body
-        name: address
+        name: body
         required: true
         schema:
-          type: string
-      - description: Decimals
-        in: body
-        name: decimals
-        required: true
-        schema:
-          type: string
-      - description: Symbol
-        in: body
-        name: symbol
-        required: true
-        schema:
-          type: string
-      - description: Name
-        in: body
-        name: name
-        required: true
-        schema:
-          type: string
+          $ref: '#/definitions/v1.Token'
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: "True"
           schema:
-            type: object
+            type: boolean
         "400":
-          description: Bad Request
+          description: 'Bad request: error message'
           schema:
-            type: object
+            type: string
+        "500":
+          description: 'Internal server error: error message'
+          schema:
+            type: string
       summary: Updates a token's data
   /user:
     get:
@@ -138,19 +170,22 @@ paths:
         "200":
           description: OK
           schema:
-            type: object
+            $ref: '#/definitions/v1.Ledger'
         "400":
-          description: Bad Request
+          description: 'Bad request: no query found'
           schema:
-            type: object
+            type: string
+        "404":
+          description: Account not found
+          schema:
+            type: string
       summary: Gets an account's data
   /user/delete:
     delete:
       parameters:
-      - default: user
-        description: Username
+      - description: Account
         in: body
-        name: name
+        name: account
         required: true
         schema:
           type: string
@@ -158,38 +193,23 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Account successfully deleted
           schema:
-            type: object
-        "400":
-          description: Bad Request
+            type: string
+        "500":
+          description: 'Internal server error: error message'
           schema:
-            type: object
+            type: string
       summary: Deletes an account
   /user/deposit:
     put:
       parameters:
-      - default: user
-        description: account
+      - description: Deposit details
         in: body
-        name: name
+        name: request
         required: true
         schema:
-          type: string
-      - default: "1"
-        description: amount
-        in: body
-        name: amount
-        required: true
-        schema:
-          type: string
-      - default: 0x
-        description: token
-        in: body
-        name: token
-        required: true
-        schema:
-          type: string
+          $ref: '#/definitions/v1.LedgerChangeRequest'
       produces:
       - application/json
       responses:
@@ -204,49 +224,38 @@ paths:
       summary: Deposits an amount to an account
   /user/new:
     post:
+      parameters:
+      - description: Account details
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/v1.Ledger'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            type: object
+            $ref: '#/definitions/v1.Ledger'
         "400":
-          description: Bad Request
+          description: 'Bad request: no body found'
           schema:
-            type: object
+            type: string
+        "500":
+          description: 'Internal server error: error message'
+          schema:
+            type: string
       summary: Creates a new account with a ledger
   /user/transfer:
     put:
       parameters:
-      - default: user
-        description: from
+      - description: Transfer details
         in: body
-        name: name
+        name: request
         required: true
         schema:
-          type: string
-      - default: user
-        description: to
-        in: body
-        name: name
-        required: true
-        schema:
-          type: string
-      - default: "1"
-        description: amount
-        in: body
-        name: name
-        required: true
-        schema:
-          type: string
-      - default: 0x
-        description: token
-        in: body
-        name: name
-        required: true
-        schema:
-          type: string
+          $ref: '#/definitions/v1.TransferRequest'
       produces:
       - application/json
       responses:
@@ -262,27 +271,12 @@ paths:
   /user/withdraw:
     put:
       parameters:
-      - default: user
-        description: account
+      - description: Withdraw details
         in: body
-        name: name
+        name: request
         required: true
         schema:
-          type: string
-      - default: "1"
-        description: amount
-        in: body
-        name: amount
-        required: true
-        schema:
-          type: string
-      - default: 0x
-        description: token
-        in: body
-        name: token
-        required: true
-        schema:
-          type: string
+          $ref: '#/definitions/v1.LedgerChangeRequest'
       produces:
       - application/json
       responses:
@@ -297,141 +291,118 @@ paths:
       summary: Withdraws an amount from an account
   /withdraws:
     get:
-      consumes:
-      - application/json
       parameters:
       - description: Account
-        in: body
+        in: query
         name: account
         required: true
-        schema:
-          type: string
-      - description: Token
-        in: body
-        name: token
-        required: true
-        schema:
-          type: string
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            type: object
+            items:
+              $ref: '#/definitions/v1.Withdraw'
+            type: array
         "400":
-          description: Bad Request
+          description: 'Bad request: error message'
           schema:
-            type: object
+            type: string
+        "500":
+          description: 'Internal server error: error message'
+          schema:
+            type: string
       summary: Gets an account's withdraws data
   /withdraws/clean:
     delete:
-      consumes:
-      - application/json
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: "True"
           schema:
-            type: object
-        "400":
-          description: Bad Request
+            type: boolean
+        "500":
+          description: 'Internal server error: error message'
           schema:
-            type: object
+            type: string
       summary: Removes all finished withdraws from the database and adds them to the
         finished withdraws table
   /withdraws/delete:
     delete:
-      consumes:
-      - application/json
       parameters:
-      - description: Account
+      - description: Withdraw
         in: body
-        name: account
+        name: body
         required: true
         schema:
-          type: string
-      - description: Token
-        in: body
-        name: token
-        required: true
-        schema:
-          type: string
+          $ref: '#/definitions/v1.Withdraw'
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: "True"
           schema:
-            type: object
+            type: boolean
         "400":
-          description: Bad Request
+          description: 'Bad request: error message'
           schema:
-            type: object
+            type: string
+        "500":
+          description: 'Internal server error: error message'
+          schema:
+            type: string
       summary: Removes a pending withdraw from the database
   /withdraws/new:
     post:
-      consumes:
-      - application/json
       parameters:
-      - description: Account
+      - description: Withdraw
         in: body
-        name: account
+        name: body
         required: true
         schema:
-          type: string
-      - description: Token
-        in: body
-        name: token
-        required: true
-        schema:
-          type: string
-      - description: Amount
-        in: body
-        name: amount
-        required: true
-        schema:
-          type: string
+          $ref: '#/definitions/v1.Withdraw'
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: "True"
           schema:
-            type: object
+            type: boolean
         "400":
-          description: Bad Request
+          description: 'Bad request: error message'
           schema:
-            type: object
+            type: string
+        "500":
+          description: 'Internal server error: error message'
+          schema:
+            type: string
       summary: Inserts a pending withdraw into the database
   /withdraws/process:
     put:
-      consumes:
-      - application/json
       parameters:
-      - description: Account
+      - description: Withdraw
         in: body
-        name: account
+        name: body
         required: true
         schema:
-          type: string
-      - description: Token
-        in: body
-        name: token
-        required: true
-        schema:
-          type: string
+          $ref: '#/definitions/v1.Withdraw'
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: "True"
           schema:
-            type: object
+            type: boolean
         "400":
-          description: Bad Request
+          description: 'Bad request: error message'
           schema:
-            type: object
+            type: string
+        "500":
+          description: 'Internal server error: error message'
+          schema:
+            type: string
       summary: Sets a pending withdraw to finished
 swagger: "2.0"

@@ -35,13 +35,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/v1.Token"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request: no query found",
                         "schema": {
-                            "type": "object"
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Token not found",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -61,15 +67,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "DB deletion success",
                         "schema": {
-                            "type": "object"
+                            "type": "string"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request: error message",
                         "schema": {
-                            "type": "object"
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error: error message",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -83,53 +95,32 @@ const docTemplate = `{
                 "summary": "Creates a new token",
                 "parameters": [
                     {
-                        "description": "Address",
-                        "name": "address",
+                        "description": "Token",
+                        "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Decimals",
-                        "name": "decimals",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Symbol",
-                        "name": "symbol",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Name",
-                        "name": "name",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/v1.Token"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "True",
                         "schema": {
-                            "type": "object"
+                            "type": "boolean"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request: error message",
                         "schema": {
-                            "type": "object"
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error: error message",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -144,52 +135,31 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "Token",
-                        "name": "address",
+                        "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Decimals",
-                        "name": "decimals",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Symbol",
-                        "name": "symbol",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Name",
-                        "name": "name",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/v1.Token"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "True",
                         "schema": {
-                            "type": "object"
+                            "type": "boolean"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request: error message",
                         "schema": {
-                            "type": "object"
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error: error message",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -214,13 +184,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/v1.Ledger"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request: no query found",
                         "schema": {
-                            "type": "object"
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Account not found",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -234,9 +210,8 @@ const docTemplate = `{
                 "summary": "Deletes an account",
                 "parameters": [
                     {
-                        "default": "user",
-                        "description": "Username",
-                        "name": "name",
+                        "description": "Account",
+                        "name": "account",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -246,15 +221,15 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Account successfully deleted",
                         "schema": {
-                            "type": "object"
+                            "type": "string"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "500": {
+                        "description": "Internal server error: error message",
                         "schema": {
-                            "type": "object"
+                            "type": "string"
                         }
                     }
                 }
@@ -268,33 +243,12 @@ const docTemplate = `{
                 "summary": "Deposits an amount to an account",
                 "parameters": [
                     {
-                        "default": "user",
-                        "description": "account",
-                        "name": "name",
+                        "description": "Deposit details",
+                        "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "default": "1",
-                        "description": "amount",
-                        "name": "amount",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "default": "0x",
-                        "description": "token",
-                        "name": "token",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/v1.LedgerChangeRequest"
                         }
                     }
                 ],
@@ -320,17 +274,34 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "summary": "Creates a new account with a ledger",
+                "parameters": [
+                    {
+                        "description": "Account details",
+                        "name": "account",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.Ledger"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/v1.Ledger"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request: no body found",
                         "schema": {
-                            "type": "object"
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error: error message",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -344,43 +315,12 @@ const docTemplate = `{
                 "summary": "Transfers an amount from one account to another",
                 "parameters": [
                     {
-                        "default": "user",
-                        "description": "from",
-                        "name": "name",
+                        "description": "Transfer details",
+                        "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "default": "user",
-                        "description": "to",
-                        "name": "name",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "default": "1",
-                        "description": "amount",
-                        "name": "name",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "default": "0x",
-                        "description": "token",
-                        "name": "name",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/v1.TransferRequest"
                         }
                     }
                 ],
@@ -408,33 +348,12 @@ const docTemplate = `{
                 "summary": "Withdraws an amount from an account",
                 "parameters": [
                     {
-                        "default": "user",
-                        "description": "account",
-                        "name": "name",
+                        "description": "Withdraw details",
+                        "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "default": "1",
-                        "description": "amount",
-                        "name": "amount",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "default": "0x",
-                        "description": "token",
-                        "name": "token",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/v1.LedgerChangeRequest"
                         }
                     }
                 ],
@@ -456,44 +375,39 @@ const docTemplate = `{
         },
         "/withdraws": {
             "get": {
-                "consumes": [
-                    "application/json"
-                ],
                 "produces": [
                     "application/json"
                 ],
                 "summary": "Gets an account's withdraws data",
                 "parameters": [
                     {
+                        "type": "string",
                         "description": "Account",
                         "name": "account",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Token",
-                        "name": "token",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/v1.Withdraw"
+                            }
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request: error message",
                         "schema": {
-                            "type": "object"
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error: error message",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -501,24 +415,21 @@ const docTemplate = `{
         },
         "/withdraws/clean": {
             "delete": {
-                "consumes": [
-                    "application/json"
-                ],
                 "produces": [
                     "application/json"
                 ],
                 "summary": "Removes all finished withdraws from the database and adds them to the finished withdraws table",
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "True",
                         "schema": {
-                            "type": "object"
+                            "type": "boolean"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "500": {
+                        "description": "Internal server error: error message",
                         "schema": {
-                            "type": "object"
+                            "type": "string"
                         }
                     }
                 }
@@ -526,44 +437,38 @@ const docTemplate = `{
         },
         "/withdraws/delete": {
             "delete": {
-                "consumes": [
-                    "application/json"
-                ],
                 "produces": [
                     "application/json"
                 ],
                 "summary": "Removes a pending withdraw from the database",
                 "parameters": [
                     {
-                        "description": "Account",
-                        "name": "account",
+                        "description": "Withdraw",
+                        "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Token",
-                        "name": "token",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/v1.Withdraw"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "True",
                         "schema": {
-                            "type": "object"
+                            "type": "boolean"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request: error message",
                         "schema": {
-                            "type": "object"
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error: error message",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -571,53 +476,38 @@ const docTemplate = `{
         },
         "/withdraws/new": {
             "post": {
-                "consumes": [
-                    "application/json"
-                ],
                 "produces": [
                     "application/json"
                 ],
                 "summary": "Inserts a pending withdraw into the database",
                 "parameters": [
                     {
-                        "description": "Account",
-                        "name": "account",
+                        "description": "Withdraw",
+                        "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Token",
-                        "name": "token",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Amount",
-                        "name": "amount",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/v1.Withdraw"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "True",
                         "schema": {
-                            "type": "object"
+                            "type": "boolean"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request: error message",
                         "schema": {
-                            "type": "object"
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error: error message",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -625,46 +515,121 @@ const docTemplate = `{
         },
         "/withdraws/process": {
             "put": {
-                "consumes": [
-                    "application/json"
-                ],
                 "produces": [
                     "application/json"
                 ],
                 "summary": "Sets a pending withdraw to finished",
                 "parameters": [
                     {
-                        "description": "Account",
-                        "name": "account",
+                        "description": "Withdraw",
+                        "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Token",
-                        "name": "token",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/v1.Withdraw"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "True",
                         "schema": {
-                            "type": "object"
+                            "type": "boolean"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request: error message",
                         "schema": {
-                            "type": "object"
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error: error message",
+                        "schema": {
+                            "type": "string"
                         }
                     }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "v1.Ledger": {
+            "type": "object",
+            "properties": {
+                "account": {
+                    "type": "string"
+                },
+                "balance": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.LedgerChangeRequest": {
+            "type": "object",
+            "properties": {
+                "account": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.Token": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "decimals": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "symbol": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.TransferRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.Withdraw": {
+            "type": "object",
+            "properties": {
+                "account": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "string"
+                },
+                "issueTimestamp": {
+                    "type": "string"
+                },
+                "pending": {
+                    "type": "boolean"
+                },
+                "token": {
+                    "type": "string"
                 }
             }
         }
