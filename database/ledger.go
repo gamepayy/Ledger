@@ -98,7 +98,7 @@ func DepositLedger(account, token, amount string) (bool, error) {
 	bigAmount, _ = bigAmount.SetString(amount, 10)
 
 	// sum balance
-	balanceCheck, err := SumBalance(account, bigAmount)
+	balanceCheck, err := sumBalance(account, bigAmount)
 	if err != nil {
 		return false, err
 	}
@@ -143,7 +143,7 @@ func TransferLedger(from, to, amount, token string) (bool, error) {
 	}
 
 	// check if user has enough balance
-	balanceCheck, err := HasEnoughBalance(from, bigAmount)
+	balanceCheck, err := hasEnoughBalance(from, bigAmount)
 	if err != nil {
 		return false, err
 	}
@@ -164,7 +164,7 @@ func TransferLedger(from, to, amount, token string) (bool, error) {
 		return false, err
 	}
 
-	receiverBalance, _ := SumBalance(to, bigAmount)
+	receiverBalance, _ := sumBalance(to, bigAmount)
 	// deposit
 	stmt, err = db.Prepare("UPDATE users SET balance = ? WHERE address = ?")
 	if err != nil {
@@ -191,7 +191,7 @@ func WithdrawLedger(account, token, amount string) (bool, error) {
 	bigAmount, _ = bigAmount.SetString(amount, 10)
 
 	// check if user has enough balance
-	balanceCheck, err := HasEnoughBalance(account, bigAmount)
+	balanceCheck, err := hasEnoughBalance(account, bigAmount)
 	if err != nil {
 		return false, err
 	}
@@ -233,7 +233,7 @@ type BalanceCheck struct {
 	IsPossible bool   `json:"is_possible"`
 }
 
-func HasEnoughBalance(account string, amount *big.Int) (BalanceCheck, error) {
+func hasEnoughBalance(account string, amount *big.Int) (BalanceCheck, error) {
 
 	db, err := connectDB()
 	if err != nil {
@@ -274,7 +274,7 @@ func HasEnoughBalance(account string, amount *big.Int) (BalanceCheck, error) {
 	return Check, nil
 }
 
-func SumBalance(account string, amount *big.Int) (BalanceCheck, error) {
+func sumBalance(account string, amount *big.Int) (BalanceCheck, error) {
 	db, err := connectDB()
 	if err != nil {
 		return BalanceCheck{}, err
