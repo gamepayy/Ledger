@@ -7,6 +7,7 @@ import (
 )
 
 type Withdraw struct {
+	Id      int
 	Account string
 	Token   string
 	Amount  string
@@ -152,7 +153,7 @@ func GetWithdraws(account string) ([]Withdraw, error) {
 
 	for res.Next() {
 		var row Withdraw
-		err = res.Scan(&row.Account, &row.Token, &row.Amount, &row.Pending)
+		err = res.Scan(&row.Id, &row.Account, &row.Token, &row.Amount, &row.Pending)
 		if err != nil {
 			return []Withdraw{}, err
 		} else {

@@ -62,7 +62,7 @@ func DeleteWithdraw(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, true)
+	c.JSON(http.StatusOK, gin.H{"message": "Withdrawal deleted successfully."})
 }
 
 // @Summary 	Removes all finished withdraws from the database and adds them to the finished withdraws table
@@ -102,7 +102,7 @@ func ProcessWithdraw(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, true)
+	c.JSON(http.StatusOK, gin.H{"message": "Withdrawal processed successfully."})
 }
 
 // @Summary 	Gets an account's withdraws data

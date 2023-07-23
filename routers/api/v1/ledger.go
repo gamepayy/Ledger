@@ -64,13 +64,13 @@ func NewLedger(c *gin.Context) {
 		return
 	}
 
-	result, err := database.NewLedger(ledger)
+	_, err := database.NewLedger(ledger)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error: " + err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, result)
+	c.JSON(http.StatusOK, gin.H{"message": "Account created successfully."})
 }
 
 // @Summary Deletes an account
@@ -94,7 +94,7 @@ func DeleteLedger(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Account successfully deleted"})
+	c.JSON(http.StatusOK, gin.H{"message": "Account successfully deleted."})
 }
 
 // @Summary Transfers an amount from one account to another
@@ -132,13 +132,13 @@ func WithdrawLedger(c *gin.Context) {
 		return
 	}
 
-	result, err := database.WithdrawLedger(request.Account, request.Currency, request.Amount)
+	_, err := database.WithdrawLedger(request.Account, request.Currency, request.Amount)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to withdraw: " + err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, result)
+	c.JSON(http.StatusOK, gin.H{"message": "Withdrawal successful."})
 }
 
 // @Summary Deposits an amount to an account

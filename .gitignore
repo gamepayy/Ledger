@@ -3,3 +3,5 @@ gamepayy_ledger
 
 logs
 logs/logs.json
+routers/errors.json
+routers/logs.json
