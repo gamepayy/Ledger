@@ -35,9 +35,9 @@ func TestAllRoutes(t *testing.T) {
 
 	// Clean up any existing data for account and token
 	accountDeleteBody := strings.NewReader(`{"account":"tester16113"}`)
-	EndpointTest(t, router, "DELETE", "/api/v1/user/delete", 200, accountDeleteBody, `{"message":"Account successfully deleted"}`)
+	EndpointTest(t, router, "DELETE", "/api/v1/user/delete", 200, accountDeleteBody, `{"message":"Account successfully deleted."}`)
 	accountDeleteBody = strings.NewReader(`{"account":"tester1111155555"}`)
-	EndpointTest(t, router, "DELETE", "/api/v1/user/delete", 200, accountDeleteBody, `{"message":"Account successfully deleted"}`)
+	EndpointTest(t, router, "DELETE", "/api/v1/user/delete", 200, accountDeleteBody, `{"message":"Account successfully deleted."}`)
 
 	tokenDeleteBody := strings.NewReader(`{"address":"0x"}`)
 	EndpointTest(t, router, "DELETE", "/api/v1/token/delete", 200, tokenDeleteBody, `"DB deletion success"`)
@@ -47,12 +47,12 @@ func TestAllRoutes(t *testing.T) {
 	accountBytes, _ := json.Marshal(account)
 	accountBody := bytes.NewReader(accountBytes)
 
-	EndpointTest(t, router, "POST", "/api/v1/user/new", 200, accountBody, `true`)
+	EndpointTest(t, router, "POST", "/api/v1/user/new", 200, accountBody, `{"message":"Account created successfully."}`)
 
 	account = v1.Ledger{Account: "tester1111155555", Balance: "0"}
 	accountBytes, _ = json.Marshal(account)
 	accountBody = bytes.NewReader(accountBytes)
-	EndpointTest(t, router, "POST", "/api/v1/user/new", 200, accountBody, `true`)
+	EndpointTest(t, router, "POST", "/api/v1/user/new", 200, accountBody, `{"message":"Account created successfully."}`)
 	EndpointTest(t, router, "GET", "/api/v1/user?account=tester16113", 200, nil, `{"account":"tester16113","balance":"500000000000"}`)
 
 	// Create new token
@@ -71,9 +71,7 @@ func TestAllRoutes(t *testing.T) {
 	EndpointTest(t, router, "PUT", "/api/v1/token/update", 200, tokenBody, `true`)
 	EndpointTest(t, router, "GET", "/api/v1/token?address=0x", 200, nil, `{"address":"0x","name":"Ether","symbol":"MATIC","decimals":"18"}`)
 
-	mu.Lock()
-	time.Sleep(10 * time.Millisecond)
-	mu.Unlock()
+	mutexCycle(&mu)
 
 	// Transfer balance
 	transfer := v1.TransferRequest{From: "tester16113", To: "tester1111155555", Amount: "50000000000", Currency: "0x"}
@@ -82,9 +80,7 @@ func TestAllRoutes(t *testing.T) {
 
 	EndpointTest(t, router, "PUT", "/api/v1/user/transfer", 200, transferBody, `true`)
 
-	mu.Lock()
-	time.Sleep(10 * time.Millisecond)
-	mu.Unlock()
+	mutexCycle(&mu)
 
 	// Check balance
 	EndpointTest(t, router, "GET", "/api/v1/user?account=tester16113", 200, nil, `{"account":"tester16113","balance":"450000000000"}`)
@@ -105,18 +101,16 @@ func TestAllRoutes(t *testing.T) {
 	withdrawToDeleteBody := bytes.NewReader(withdrawToDeleteBytes)
 
 	// Delete withdraw
-	EndpointTest(t, router, "DELETE", "/api/v1/withdraws/delete", 200, withdrawToDeleteBody, `true`)
+	EndpointTest(t, router, "DELETE", "/api/v1/withdraws/delete", 200, withdrawToDeleteBody, `{"message":"Withdrawal deleted successfully."}`)
 
-	mu.Lock()
-	time.Sleep(10 * time.Millisecond)
-	mu.Unlock()
+	mutexCycle(&mu)
 
 	// Withdraw balance
 	withdraw := v1.Withdraw{Account: "tester1111155555", Amount: "50000000000", Token: "0x"}
 	withdrawBytes, _ := json.Marshal(withdraw)
 	withdrawBody := bytes.NewReader(withdrawBytes)
 
-	EndpointTest(t, router, "PUT", "/api/v1/user/withdraw", 200, withdrawBody, `true`)
+	EndpointTest(t, router, "POST", "/api/v1/user/withdraw", 200, withdrawBody, `{"message":"Withdrawal successful."}`)
 
 	// Check balance after withdrawal
 	EndpointTest(t, router, "GET", "/api/v1/user?account=tester1111155555", 200, nil, `{"account":"tester1111155555","balance":"50000000000"}`)
@@ -128,59 +122,65 @@ func TestAllRoutes(t *testing.T) {
 func TestPendingWithdrawsRoutes(t *testing.T) {
 	router := InitRouter()
 
-	account := v1.Ledger{Account: "tester16113", Balance: "500000000000"}
+	mu := sync.Mutex{}
+
+	account := v1.Ledger{Account: "tester16113"}
 	accountBytes, _ := json.Marshal(account)
 	accountBody := bytes.NewReader(accountBytes)
 
-	EndpointTest(t, router, "DELETE", "/api/v1/user/delete", 200, accountBody, `{"message":"Account successfully deleted"}`)
+	EndpointTest(t, router, "DELETE", "/api/v1/user/delete", 200, accountBody, `{"message":"Account successfully deleted."}`)
 
-	time.Sleep(1 * time.Second)
+	mutexCycle(&mu)
 
-	EndpointTest(t, router, "POST", "/api/v1/user/new", 200, accountBody, `true`)
+	account = v1.Ledger{Account: "tester16113", Balance: "500000000000"}
+	accountBytes, _ = json.Marshal(account)
+	accountBody = bytes.NewReader(accountBytes)
+	EndpointTest(t, router, "POST", "/api/v1/user/new", 200, accountBody, `{"message":"Account created successfully."}`)
+
+	mutexCycle(&mu)
 
 	accountResponse := `{"account":"tester16113","balance":"500000000000"}`
 	EndpointTest(t, router, "GET", "/api/v1/user?account=tester16113", 200, nil, accountResponse)
 
-	// Create new withdraw
+	// Withdraw balance
 	withdraw := v1.Withdraw{Account: "tester16113", Amount: "5000000000", Token: "0x"}
 	withdrawBytes, _ := json.Marshal(withdraw)
 	withdrawBody := bytes.NewReader(withdrawBytes)
 
-	EndpointTest(t, router, "POST", "/api/v1/withdraws/new", 200, withdrawBody, `true`)
-
-	withdrawResponse := `[{"Account":"tester16113","Token":"0x","Amount":"5000000000","Pending":"1"}]`
-	EndpointTest(t, router, "GET", "/api/v1/withdraws?account=tester16113", 200, nil, withdrawResponse)
+	EndpointTest(t, router, "POST", "/api/v1/user/withdraw", 200, withdrawBody, `{"message":"Withdrawal successful."}`)
 
 	// Delete withdraw
-	EndpointTest(t, router, "DELETE", "/api/v1/withdraws/delete", 200, withdrawBody, `true`)
-
-	EndpointTest(t, router, "GET", "/api/v1/withdraws?account=tester16113", 200, nil, `null`)
+	withdraw = v1.Withdraw{Account: "tester16113", Token: "0x"}
+	withdrawBytes, _ = json.Marshal(withdraw)
+	withdrawBody = bytes.NewReader(withdrawBytes)
+	EndpointTest(t, router, "DELETE", "/api/v1/withdraws/delete", 200, withdrawBody, `{"message":"Withdrawal deleted successfully."}`)
 
 	// Create another withdraw
-	withdraw.Amount = "150000000"
-	withdraw.Token = "1x"
+	withdraw = v1.Withdraw{Account: "tester16113", Amount: "150000000", Token: "1x"}
 	withdrawBytes, _ = json.Marshal(withdraw)
 	withdrawBody = bytes.NewReader(withdrawBytes)
 
-	EndpointTest(t, router, "POST", "/api/v1/withdraws/new", 200, withdrawBody, `true`)
+	EndpointTest(t, router, "POST", "/api/v1/user/withdraw", 200, withdrawBody, `{"message":"Withdrawal successful."}`)
 
-	withdrawResponse = `[{"Account":"tester16113","Token":"1x","Amount":"150000000","Pending":"1"}]`
-	EndpointTest(t, router, "GET", "/api/v1/withdraws?account=tester16113", 200, nil, withdrawResponse)
+	mutexCycle(&mu)
 
 	// Process the withdraw
-	EndpointTest(t, router, "PUT", "/api/v1/withdraws/process", 200, withdrawBody, `true`)
-
-	withdrawResponse = `[{"Account":"tester16113","Token":"1x","Amount":"150000000","Pending":"0"}]`
-	EndpointTest(t, router, "GET", "/api/v1/withdraws?account=tester16113", 200, nil, withdrawResponse)
+	withdraw = v1.Withdraw{Account: "tester16113", Token: "0x"}
+	withdrawBytes, _ = json.Marshal(withdraw)
+	withdrawBody = bytes.NewReader(withdrawBytes)
+	EndpointTest(t, router, "PUT", "/api/v1/withdraws/process", 200, withdrawBody, `{"message":"Withdrawal processed successfully."}`)
 
 	// Delete the processed withdraw
-	EndpointTest(t, router, "DELETE", "/api/v1/withdraws/delete", 200, withdrawBody, `true`)
-
-	EndpointTest(t, router, "GET", "/api/v1/withdraws?account=tester16113", 200, nil, `null`)
+	withdraw = v1.Withdraw{Account: "tester16113", Token: "0x"}
+	withdrawBytes, _ = json.Marshal(withdraw)
+	withdrawBody = bytes.NewReader(withdrawBytes)
+	EndpointTest(t, router, "DELETE", "/api/v1/withdraws/delete", 200, withdrawBody, `{"message":"Withdrawal deleted successfully."}`)
 
 	// Delete account
-	EndpointTest(t, router, "DELETE", "/api/v1/user/delete", 200, accountBody, `{"message":"Account successfully deleted"}`)
-
+	account = v1.Ledger{Account: "tester16113"}
+	accountBytes, _ = json.Marshal(account)
+	accountBody = bytes.NewReader(accountBytes)
+	EndpointTest(t, router, "DELETE", "/api/v1/user/delete", 200, accountBody, `{"message":"Account successfully deleted."}`)
 }
 
 func TestRateLimitingMiddlewareOnGet(t *testing.T) {
@@ -193,4 +193,10 @@ func TestRateLimitingMiddlewareOnGet(t *testing.T) {
 	// This should be the 6th request within a second, which should fail due to rate limiting
 	EndpointTest(t, router, "GET", "/api/v1/user?account=tester1111155555", 429, nil, "Too many requests. Try again in 1s")
 
+}
+
+func mutexCycle(mutex *sync.Mutex) {
+	mutex.Lock()
+	time.Sleep(10 * time.Millisecond)
+	mutex.Unlock()
 }

@@ -71,7 +71,7 @@ func InitRouter() *gin.Engine {
 
 		user.PUT("/transfer", v1.TransferLedger)
 
-		user.PUT("/withdraw", v1.WithdrawLedger)
+		user.POST("/withdraw", v1.WithdrawLedger)
 
 		user.PUT("/deposit", v1.DepositLedger)
 
