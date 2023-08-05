@@ -18,6 +18,7 @@ import (
 )
 
 func EndpointTest(t *testing.T, router *gin.Engine, requestType, endpoint string, responseCode int, body io.Reader, expectedResponse any) {
+	t.Logf("Running test for endpoint: %s with request type: %s", endpoint, requestType) // This line is new
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest(requestType, endpoint, body)
 
@@ -28,10 +29,18 @@ func EndpointTest(t *testing.T, router *gin.Engine, requestType, endpoint string
 
 }
 
-func TestAllRoutes(t *testing.T) {
-	router := InitRouter()
+func setup() (*gin.Engine, *sync.Mutex) {
+	// Setup
+	router := InitRouter() // initialize your router here
+	mu := &sync.Mutex{}    // initialize your mutex here
 
-	mu := sync.Mutex{}
+	return router, mu
+}
+
+func TestApiRoutes(t *testing.T) {
+	router, mu := setup()
+
+	mutexCycle(mu)
 
 	// Clean up any existing data for account and token
 	accountDeleteBody := strings.NewReader(`{"account":"tester16113"}`)
@@ -71,7 +80,7 @@ func TestAllRoutes(t *testing.T) {
 	EndpointTest(t, router, "PUT", "/api/v1/token/update", 200, tokenBody, `true`)
 	EndpointTest(t, router, "GET", "/api/v1/token?address=0x", 200, nil, `{"address":"0x","name":"Ether","symbol":"MATIC","decimals":"18"}`)
 
-	mutexCycle(&mu)
+	mutexCycle(mu)
 
 	// Transfer balance
 	transfer := v1.TransferRequest{From: "tester16113", To: "tester1111155555", Amount: "50000000000", Currency: "0x"}
@@ -80,7 +89,7 @@ func TestAllRoutes(t *testing.T) {
 
 	EndpointTest(t, router, "PUT", "/api/v1/user/transfer", 200, transferBody, `true`)
 
-	mutexCycle(&mu)
+	mutexCycle(mu)
 
 	// Check balance
 	EndpointTest(t, router, "GET", "/api/v1/user?account=tester16113", 200, nil, `{"account":"tester16113","balance":"450000000000"}`)
@@ -103,7 +112,7 @@ func TestAllRoutes(t *testing.T) {
 	// Delete withdraw
 	EndpointTest(t, router, "DELETE", "/api/v1/withdraws/delete", 200, withdrawToDeleteBody, `{"message":"Withdrawal deleted successfully."}`)
 
-	mutexCycle(&mu)
+	mutexCycle(mu)
 
 	// Withdraw balance
 	withdraw := v1.Withdraw{Account: "tester1111155555", Amount: "50000000000", Token: "0x"}
@@ -120,9 +129,8 @@ func TestAllRoutes(t *testing.T) {
 // missing tests for pending withdraws api
 
 func TestPendingWithdrawsRoutes(t *testing.T) {
-	router := InitRouter()
 
-	mu := sync.Mutex{}
+	router, mu := setup()
 
 	account := v1.Ledger{Account: "tester16113"}
 	accountBytes, _ := json.Marshal(account)
@@ -130,14 +138,14 @@ func TestPendingWithdrawsRoutes(t *testing.T) {
 
 	EndpointTest(t, router, "DELETE", "/api/v1/user/delete", 200, accountBody, `{"message":"Account successfully deleted."}`)
 
-	mutexCycle(&mu)
+	mutexCycle(mu)
 
 	account = v1.Ledger{Account: "tester16113", Balance: "500000000000"}
 	accountBytes, _ = json.Marshal(account)
 	accountBody = bytes.NewReader(accountBytes)
 	EndpointTest(t, router, "POST", "/api/v1/user/new", 200, accountBody, `{"message":"Account created successfully."}`)
 
-	mutexCycle(&mu)
+	mutexCycle(mu)
 
 	accountResponse := `{"account":"tester16113","balance":"500000000000"}`
 	EndpointTest(t, router, "GET", "/api/v1/user?account=tester16113", 200, nil, accountResponse)
@@ -162,7 +170,7 @@ func TestPendingWithdrawsRoutes(t *testing.T) {
 
 	EndpointTest(t, router, "POST", "/api/v1/user/withdraw", 200, withdrawBody, `{"message":"Withdrawal successful."}`)
 
-	mutexCycle(&mu)
+	mutexCycle(mu)
 
 	// Process the withdraw
 	withdraw = v1.Withdraw{Account: "tester16113", Token: "0x"}
@@ -184,14 +192,21 @@ func TestPendingWithdrawsRoutes(t *testing.T) {
 }
 
 func TestRateLimitingMiddlewareOnGet(t *testing.T) {
-	router := InitRouter()
 
-	for i := 1; i <= 5; i++ {
-		EndpointTest(t, router, "GET", "/api/v1/user?account=tester1111155555", 200, nil, `{"account":"tester1111155555","balance":"50000000000"}`)
+	router, _ := setup()
+
+	var wg sync.WaitGroup
+	for i := 1; i <= 10; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if i == 10 {
+				EndpointTest(t, router, "GET", "/api/v1/user?account=tester1111155555", 429, nil, "Too many requests. Try again in 1s")
+			}
+			EndpointTest(t, router, "GET", "/api/v1/user?account=tester1111155555", 200, nil, `{"account":"tester1111155555","balance":"50000000000"}`)
+		}()
 	}
-
-	// This should be the 6th request within a second, which should fail due to rate limiting
-	EndpointTest(t, router, "GET", "/api/v1/user?account=tester1111155555", 429, nil, "Too many requests. Try again in 1s")
+	wg.Wait() // Wait for all requests to finish
 
 }
 

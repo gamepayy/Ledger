@@ -5,3 +5,6 @@ logs
 logs/logs.json
 routers/errors.json
 routers/logs.json
+
+errors.json
+logs.json

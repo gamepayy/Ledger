@@ -12,5 +12,6 @@ import (
 // @host localhost:8080
 // @BasePath /api/v1
 func main() {
-	router.InitRouter()
+	router := router.InitRouter()
+	router.Run("0.0.0.0:8080")
 }

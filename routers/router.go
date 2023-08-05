@@ -28,7 +28,7 @@ func InitRouter() *gin.Engine {
 
 	store := ratelimit.InMemoryStore(&ratelimit.InMemoryOptions{
 		Rate:  time.Second,
-		Limit: 5,
+		Limit: 10,
 	})
 	rateLimitMiddleware := ratelimit.RateLimiter(store, &ratelimit.Options{
 		ErrorHandler: errorHandler,
@@ -102,6 +102,5 @@ func InitRouter() *gin.Engine {
 		withdraws.PUT("/process", v1.ProcessWithdraw)
 	}
 
-	router.Run("0.0.0.0:8080")
 	return router
 }
