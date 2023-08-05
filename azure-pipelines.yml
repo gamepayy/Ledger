@@ -1,0 +1,32 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+  variables:
+  goVersion: '1.20'
+
+steps:
+- task: GoTool@0
+  inputs:
+    version: '$(goVersion)'
+  displayName: 'Install Go'
+
+- script: |
+    go version
+    go get -v -t -d ./...
+    if [ -f Gopkg.toml ]; then
+        curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+        dep ensure
+    fi
+    go build -v .
+  displayName: 'Get dependencies, then build'
+
+- script: |
+    go test -v ./routers -run=TestRateLimitingMiddlewareOnGet
+  displayName: 'Run rate-limiter tests'
+
+- script: |
+    go test -v -tags=rateLimit ./routers
+  displayName: 'Run router tests'
