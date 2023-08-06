@@ -20,7 +20,7 @@ COPY sql ./sql
 RUN go build -o gamepayy_ledger .
 
 ENV HOST 0.0.0.0
-ENV PORT 8080
-EXPOSE 8080
+ENV PORT 80
+EXPOSE 80
 
 CMD ["./gamepayy_ledger"]
