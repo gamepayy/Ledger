@@ -4,8 +4,8 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
-  variables:
-  goVersion: '1.20'
+variables:
+  goVersion: '1.20.5'
 
 steps:
 - task: GoTool@0
@@ -22,11 +22,26 @@ steps:
     fi
     go build -v .
   displayName: 'Get dependencies, then build'
+  env:
+    DSN: $(DSN)
+    FEE_FROM_1_TO_10000: $(FEE_FROM_1_TO_10000)
+    RATE_LIMIT: $(RATE_LIMIT)
+    GIN_MODE: $(GIN_MODE)
 
 - script: |
     go test -v ./routers -run=TestRateLimitingMiddlewareOnGet
   displayName: 'Run rate-limiter tests'
+  env:
+    DSN: $(DSN)
+    FEE_FROM_1_TO_10000: $(FEE_FROM_1_TO_10000)
+    RATE_LIMIT: $(RATE_LIMIT)
+    GIN_MODE: $(GIN_MODE)
 
 - script: |
     go test -v -tags=rateLimit ./routers
   displayName: 'Run router tests'
+  env:
+    DSN: $(DSN)
+    FEE_FROM_1_TO_10000: $(FEE_FROM_1_TO_10000)
+    RATE_LIMIT: $(RATE_LIMIT)
+    GIN_MODE: $(GIN_MODE)
