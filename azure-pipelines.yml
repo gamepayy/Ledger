@@ -34,10 +34,6 @@ steps:
 
 - script: |
 
-    echo "DSN=$(DSN)" >> .env
-    echo "FEE_FROM_1_TO_10000=$(FEE_FROM_1_TO_10000)" >> .env
-    echo "RATE_LIMIT=$(RATE_LIMIT)" >> .env
-    echo "GIN_MODE=$(GIN_MODE)" >> .env
     go test -v ./routers -run=TestRateLimitingMiddlewareOnGet
   displayName: 'Run rate-limiter tests'
   env:
@@ -47,10 +43,6 @@ steps:
     GIN_MODE: $(GIN_MODE)
 
 - script: |
-    echo "DSN=$(DSN)" >> .env
-    echo "FEE_FROM_1_TO_10000=$(FEE_FROM_1_TO_10000)" >> .env
-    echo "RATE_LIMIT=$(RATE_LIMIT)" >> .env
-    echo "GIN_MODE=$(GIN_MODE)" >> .env
     go test -v -tags=rateLimit ./routers
   displayName: 'Run router tests'
   env:
