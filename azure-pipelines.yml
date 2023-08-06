@@ -1,5 +1,11 @@
 trigger:
-- main
+pull_request:
+    branches: 
+      - main
+  push:
+    branches:
+      - main
+
 
 pool:
   vmImage: 'ubuntu-latest'
