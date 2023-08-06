@@ -51,7 +51,7 @@ definitions:
       token:
         type: string
     type: object
-host: localhost:8080
+host: localhost:80
 info:
   contact: {}
   description: This API is used to manage the GP ledger. It is used to create, read,
