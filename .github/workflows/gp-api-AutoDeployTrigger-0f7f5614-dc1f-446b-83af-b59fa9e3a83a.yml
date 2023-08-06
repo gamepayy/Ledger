@@ -26,6 +26,13 @@ jobs:
         with:
           creds: ${{ secrets.GPAPI_AZURE_CREDENTIALS }}
 
+      - name: Create .env file
+        run: |
+          echo "DSN=${{ secrets.DSN }}" >> .env
+          echo "FEE_FROM_1_TO_10000=${{ secrets.FEE_FROM_1_TO_10000 }}" >> .env
+          echo "RATE_LIMIT=${{ secrets.RATE_LIMIT }}" >> .env
+          echo "GIN_MODE=${{ secrets.GIN_MODE }}" >> .env
+
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v1
         with:
@@ -36,7 +43,3 @@ jobs:
           containerAppName: gp-api
           resourceGroup: DefaultResourceGroup-EUS
           imageToBuild: gpbend.azurecr.io/gp-api:${{ github.sha }}
-          
-
-     
-
