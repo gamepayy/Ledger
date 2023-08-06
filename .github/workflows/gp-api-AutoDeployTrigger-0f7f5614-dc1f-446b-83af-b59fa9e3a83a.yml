@@ -1,0 +1,42 @@
+name: Trigger auto deployment for gp-api
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ main ]
+    paths:
+    - '**'
+    - '.github/workflows/gp-api-AutoDeployTrigger-0f7f5614-dc1f-446b-83af-b59fa9e3a83a.yml'
+
+  # Allow mannually trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.GPAPI_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          appSourcePath: ${{ github.workspace }} 
+          registryUrl: gpbend.azurecr.io
+          registryUsername: ${{ secrets.GPAPI_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.GPAPI_REGISTRY_PASSWORD }}
+          containerAppName: gp-api
+          resourceGroup: DefaultResourceGroup-EUS
+          imageToBuild: gpbend.azurecr.io/gp-api:${{ github.sha }}
+          
+
+     
+
